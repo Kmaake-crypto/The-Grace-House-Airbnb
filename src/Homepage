@@ -1,0 +1,92 @@
+import Navbar from '../components/Navbar.jsx'
+import Footer from '../components/Footer.jsx'
+import SearchBar from '../components/SearchBar.jsx'
+import { inspirationHotels } from '../data/listings.js'
+
+export default function Home() {
+  return (
+    <div>
+      <Navbar dark showSearch={false} />
+
+      <div className="max-w-7xl mx-auto px-6 pb-8 pt-4">
+        <SearchBar />
+      </div>
+
+      <div className="max-w-7xl mx-auto px-6">
+        <div className="relative rounded-2xl overflow-hidden h-[420px]">
+          <img
+            src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1600&q=80"
+            alt="Featured stay"
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-black/20 flex flex-col items-center justify-center text-center gap-4">
+            <h1 className="text-white text-4xl font-semibold drop-shadow">Not sure where to go? Perfect.</h1>
+            <button className="bg-white text-gray-900 font-semibold rounded-full px-6 py-3 hover:bg-gray-100">
+              I&apos;m flexible
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <section className="max-w-7xl mx-auto px-6 py-16">
+        <h2 className="text-2xl font-semibold text-gray-900 mb-6">Inspiration for your next trip</h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {inspirationHotels.map((hotel) => (
+            <div key={hotel.name} className="relative rounded-xl overflow-hidden h-56 group cursor-pointer">
+              <img src={hotel.image} alt={hotel.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+              <div className="absolute bottom-4 left-4 text-white">
+                <h3 className="font-semibold leading-tight">{hotel.name}</h3>
+                <p className="text-xs">{hotel.distance}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="max-w-7xl mx-auto px-6 py-8">
+        <h2 className="text-2xl font-semibold text-gray-900 mb-6">Discover StayFinder Experiences</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="relative rounded-xl overflow-hidden h-64">
+            <img src="https://images.unsplash.com/photo-1533130061792-64b345e4a833?w=1000&q=80" alt="Things to do on your trip" className="w-full h-full object-cover" />
+            <div className="absolute inset-0 bg-black/30 flex flex-col justify-center pl-8 text-white gap-3">
+              <h3 className="text-2xl font-semibold max-w-[220px]">Things to do on your trip</h3>
+              <button className="bg-white text-gray-900 font-semibold rounded-md px-4 py-2 w-fit">Experiences</button>
+            </div>
+          </div>
+          <div className="relative rounded-xl overflow-hidden h-64">
+            <img src="https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=1000&q=80" alt="Things to do from home" className="w-full h-full object-cover" />
+            <div className="absolute inset-0 bg-black/30 flex flex-col justify-center pl-8 text-white gap-3">
+              <h3 className="text-2xl font-semibold max-w-[220px]">Things to do from home</h3>
+              <button className="bg-white text-gray-900 font-semibold rounded-md px-4 py-2 w-fit">Online Experiences</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="max-w-7xl mx-auto px-6 py-8 flex flex-col md:flex-row items-center gap-8">
+        <div className="flex-1">
+          <h2 className="text-2xl font-semibold text-gray-900 mb-4">Shop StayFinder gift cards</h2>
+          <button className="bg-gray-900 text-white font-semibold rounded-md px-5 py-2.5">Learn more</button>
+        </div>
+        <div className="flex-1 flex justify-center gap-[-20px]">
+          <div className="w-40 h-24 rounded-lg bg-gradient-to-br from-sky-300 to-indigo-500 -rotate-6 shadow-lg" />
+          <div className="w-40 h-24 rounded-lg bg-brand -ml-10 shadow-lg" />
+          <div className="w-40 h-24 rounded-lg bg-gradient-to-br from-purple-400 to-pink-400 rotate-6 -ml-10 shadow-lg" />
+        </div>
+      </section>
+
+      <section className="max-w-7xl mx-auto px-6 py-8">
+        <div className="relative rounded-2xl overflow-hidden h-72">
+          <img src="https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=1400&q=80" alt="Questions about hosting" className="w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-black/40 flex flex-col justify-center pl-10 text-white gap-4">
+            <h3 className="text-4xl font-bold max-w-md">Questions about hosting?</h3>
+            <button className="bg-white text-gray-900 font-semibold rounded-md px-5 py-2.5 w-fit">Ask a Superhost</button>
+          </div>
+        </div>
+      </section>
+
+      <Footer />
+    </div>
+  )
+}

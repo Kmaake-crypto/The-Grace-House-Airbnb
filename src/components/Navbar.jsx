@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import SearchBar from './SearchBar.jsx'
-import logo from '../assets/1787575804347_image.png'
+import logo from '../assets/airbnb.png'
 
 export default function Navbar({ dark = false, showSearch = true }) {
   return (

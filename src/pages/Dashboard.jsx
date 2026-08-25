@@ -4,66 +4,110 @@ import Footer from '../components/Footer.jsx'
 import Navbar from '../components/Navbar.jsx'
 import { reservations, listings } from '../data/listings.js'
 
+function zarFormat(amount) {
+  return `R ${Number(amount).toLocaleString('en-ZA')}`
+}
+
+const STAT_CARDS = [
+  { label: 'Total Listings', value: listings.length, icon: '🏠' },
+  { label: 'Active Reservations', value: reservations.length, icon: '📅' },
+  { label: 'Monthly Revenue', value: zarFormat(listings.reduce((s, l) => s + l.price * 7, 0)), icon: '💰' },
+  { label: 'Avg. Rating', value: (listings.reduce((s, l) => s + l.rating, 0) / listings.length).toFixed(2), icon: '⭐' },
+]
+
 export default function Dashboard() {
   const [tab, setTab] = useState('reservations')
   const [rows, setRows] = useState(reservations)
 
   return (
-    <div>
+    <div className="min-h-screen transition-colors duration-300"
+      style={{ background: 'var(--bg-page)', color: 'var(--text-primary)' }}>
       <Navbar showSearch={false} />
-      <div>
-          <div className="flex items-center gap-2 text-sm text-gray-700">
-            <span>John Doe</span>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h16v2H4zM4 11h16v2H4zM4 18h16v2H4z" /></svg>
-            <span className="w-7 h-7 rounded-full bg-gray-300 inline-block" />
-          </div>
-      </div>
 
-      <div className="max-w-7xl mx-auto px-6 py-6">
-        <div className="flex gap-3 mb-8">
-          <button
-            onClick={() => setTab('reservations')}
-            className={`text-sm font-semibold rounded-md px-4 py-2 border ${tab === 'reservations' ? 'border-gray-900 bg-gray-900 text-white' : 'border-gray-300 text-gray-700'}`}
-          >
-            View Reservations
-          </button>
-          <button
-            onClick={() => setTab('listings')}
-            className={`text-sm font-semibold rounded-md px-4 py-2 border ${tab === 'listings' ? 'border-gray-900 bg-gray-900 text-white' : 'border-gray-300 text-gray-700'}`}
-          >
-            View Listings
-          </button>
-          <Link to="/create-listing" className="text-sm font-semibold rounded-md px-4 py-2 border border-gray-300 text-gray-700">
-            Create Listing
+      <div className="max-w-7xl mx-auto px-6 py-8">
+
+        {/* Page header */}
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-2xl font-semibold" style={{ color: 'var(--text-primary)' }}>
+              Host Dashboard
+            </h1>
+            <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>
+              Manage your South African properties
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="text-sm font-medium" style={{ color: 'var(--text-muted)' }}>John Doe</span>
+            <span className="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-sm"
+              style={{ background: 'linear-gradient(135deg,#016764,#001E1E)' }}>
+              JD
+            </span>
+          </div>
+        </div>
+
+        {/* Stat cards */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          {STAT_CARDS.map((s) => (
+            <div key={s.label} className="rounded-xl p-5 flex flex-col gap-2"
+              style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+              <span className="text-2xl">{s.icon}</span>
+              <p className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>{s.value}</p>
+              <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{s.label}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* Tab switcher */}
+        <div className="flex gap-3 mb-6">
+          {['reservations', 'listings'].map((t) => (
+            <button key={t} onClick={() => setTab(t)}
+              className="text-sm font-semibold rounded-lg px-5 py-2 transition-colors"
+              style={tab === t
+                ? { background: 'linear-gradient(135deg,#016764,#001E1E)', color: '#fff', border: '1px solid transparent' }
+                : { background: 'var(--bg-card)', color: 'var(--text-primary)', border: '1px solid var(--border)' }}>
+              {t === 'reservations' ? 'Reservations' : 'My Listings'}
+            </button>
+          ))}
+          <Link to="/create-listing"
+            className="text-sm font-semibold rounded-lg px-5 py-2 ml-auto transition-colors"
+            style={{ background: 'var(--bg-card)', color: 'var(--teal)', border: '1px solid #016764' }}>
+            + Create Listing
           </Link>
         </div>
 
-        {tab === 'reservations' ? (
+        {/* Reservations table */}
+        {tab === 'reservations' && (
           <div>
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">My Reservations</h2>
-            <div className="overflow-x-auto border border-gray-200 rounded-lg">
+            <div className="overflow-x-auto rounded-xl" style={{ border: '1px solid var(--border)' }}>
               <table className="w-full text-sm">
-                <thead className="bg-gray-50 text-left">
-                  <tr>
-                    <th className="px-4 py-3 font-semibold">Booked by</th>
-                    <th className="px-4 py-3 font-semibold">Property</th>
-                    <th className="px-4 py-3 font-semibold">Checkin</th>
-                    <th className="px-4 py-3 font-semibold">Checkout</th>
-                    <th className="px-4 py-3 font-semibold text-right">Actions</th>
+                <thead>
+                  <tr style={{ background: 'var(--bg-surface)' }}>
+                    {['Booked by', 'Property', 'Check-in', 'Check-out', 'Actions'].map((h, i) => (
+                      <th key={h} className={`px-4 py-3 font-semibold text-left ${i === 4 ? 'text-right' : ''}`}
+                        style={{ color: 'var(--text-primary)' }}>{h}</th>
+                    ))}
                   </tr>
                 </thead>
                 <tbody>
+                  {rows.length === 0 && (
+                    <tr>
+                      <td colSpan={5} className="px-4 py-10 text-center text-sm"
+                        style={{ color: 'var(--text-muted)' }}>
+                        No reservations yet.
+                      </td>
+                    </tr>
+                  )}
                   {rows.map((r, i) => (
-                    <tr key={i} className="border-t border-gray-200">
-                      <td className="px-4 py-3">{r.bookedBy}</td>
-                      <td className="px-4 py-3">{r.property}</td>
-                      <td className="px-4 py-3">{r.checkin}</td>
-                      <td className="px-4 py-3">{r.checkout}</td>
+                    <tr key={i} style={{ borderTop: '1px solid var(--border)' }}>
+                      <td className="px-4 py-3 font-medium" style={{ color: 'var(--text-primary)' }}>{r.bookedBy}</td>
+                      <td className="px-4 py-3" style={{ color: 'var(--text-muted)' }}>{r.property}</td>
+                      <td className="px-4 py-3" style={{ color: 'var(--text-muted)' }}>{r.checkin}</td>
+                      <td className="px-4 py-3" style={{ color: 'var(--text-muted)' }}>{r.checkout}</td>
                       <td className="px-4 py-3 text-right">
                         <button
                           onClick={() => setRows(rows.filter((_, idx) => idx !== i))}
-                          className="bg-brand hover:bg-brand-dark text-white text-xs font-semibold rounded-md px-4 py-1.5"
-                        >
+                          className="text-xs font-semibold rounded-md px-4 py-1.5 text-white transition-opacity hover:opacity-80"
+                          style={{ background: 'linear-gradient(135deg,#016764,#001E1E)' }}>
                           Delete
                         </button>
                       </td>
@@ -73,21 +117,48 @@ export default function Dashboard() {
               </table>
             </div>
           </div>
-        ) : (
-          <div>
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">My Listings</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {listings.map((l) => (
-                <div key={l.id} className="border border-gray-200 rounded-lg overflow-hidden">
-                  <img src={l.image} alt={l.title} className="h-36 w-full object-cover" />
-                  <div className="p-4">
-                    <h3 className="font-semibold text-sm">{l.title}</h3>
-                    <p className="text-xs text-gray-500">{l.location}</p>
-                    <p className="text-sm font-semibold mt-2">${l.price} / night</p>
+        )}
+
+        {/* Listings grid */}
+        {tab === 'listings' && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {listings.map((l) => (
+              <div key={l.id} className="rounded-xl overflow-hidden"
+                style={{ border: '1px solid var(--border)', background: 'var(--bg-card)' }}>
+                <div className="relative h-40">
+                  <img src={l.image} alt={l.title} className="h-full w-full object-cover" />
+                  <span className="absolute top-2 right-2 text-xs font-semibold rounded-full px-2 py-0.5"
+                    style={{ background: '#016764', color: '#fff' }}>
+                    {l.currency ?? 'ZAR'}
+                  </span>
+                </div>
+                <div className="p-4">
+                  <h3 className="font-semibold text-sm" style={{ color: 'var(--text-primary)' }}>{l.title}</h3>
+                  <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>{l.location}</p>
+                  <div className="flex items-center justify-between mt-3">
+                    <p className="text-sm font-bold" style={{ color: '#016764' }}>
+                      {l.priceFormatted ?? zarFormat(l.price)}{' '}
+                      <span className="font-normal text-xs" style={{ color: 'var(--text-muted)' }}>/night</span>
+                    </p>
+                    <span className="flex items-center gap-1 text-xs" style={{ color: 'var(--text-muted)' }}>
+                      ⭐ {l.rating.toFixed(1)}
+                    </span>
+                  </div>
+                  <div className="flex gap-2 mt-3">
+                    <Link to={`/listing/${l.id}`}
+                      className="flex-1 text-center text-xs font-semibold rounded-md py-1.5 transition-opacity hover:opacity-80"
+                      style={{ background: 'var(--bg-surface)', color: 'var(--text-primary)', border: '1px solid var(--border)' }}>
+                      View
+                    </Link>
+                    <Link to="/create-listing"
+                      className="flex-1 text-center text-xs font-semibold rounded-md py-1.5 text-white transition-opacity hover:opacity-80"
+                      style={{ background: 'linear-gradient(135deg,#016764,#001E1E)' }}>
+                      Edit
+                    </Link>
                   </div>
                 </div>
-              ))}
-            </div>
+              </div>
+            ))}
           </div>
         )}
       </div>

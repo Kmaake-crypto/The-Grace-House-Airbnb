@@ -2,6 +2,7 @@ import { useParams } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import Navbar from '../components/Navbar.jsx'
 import Footer from '../components/Footer.jsx'
+import BookingModal from '../components/BookingModal.jsx'
 import { useTaplineListing } from '../hooks/useTaplineListings.js'
 import { fetchPrice } from '../services/taplineApi.js'
 import { reviews } from '../data/listings.js'
@@ -20,6 +21,7 @@ export default function ListingDetail() {
   const [nights] = useState(7)
   const [livePrice, setLivePrice] = useState(null)
   const [priceLoading, setPriceLoading] = useState(false)
+  const [showBooking, setShowBooking] = useState(false)
 
   useEffect(() => {
     if (!listing || String(listing.id).startsWith('sa-')) return
@@ -53,6 +55,10 @@ export default function ListingDetail() {
   return (
     <div className="transition-colors duration-300" style={{ background: 'var(--bg-page)', color: 'var(--text-primary)' }}>
       <Navbar />
+
+      {showBooking && (
+        <BookingModal listing={listing} onClose={() => setShowBooking(false)} />
+      )}
 
       <div className="max-w-6xl mx-auto px-6 pt-6">
         {/* Title */}
@@ -245,6 +251,7 @@ export default function ListingDetail() {
               </div>
 
               <button
+                onClick={() => setShowBooking(true)}
                 className="w-full font-semibold rounded-lg py-3 text-white hover:opacity-90 transition-opacity"
                 style={{ background: 'linear-gradient(135deg, #016764 0%, #001E1E 100%)' }}
               >

@@ -1,38 +1,60 @@
 
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap');
 
+/* ── Light mode tokens ───────────────────────────────────── */
 :root {
+  --teal:         #016764;
+  --teal-dark:    #001E1E;
+  --teal-mid:     #014848;
+  --teal-muted:   #005958;
+
+  --bg-page:      #ffffff;
+  --bg-surface:   #f9fafb;
+  --bg-card:      #ffffff;
+  --border:       #e5e7eb;
+  --text-primary: #111827;
+  --text-muted:   #6b7280;
+  --text-link:    #016764;
+
   font-family: 'DM Sans', sans-serif;
-  color: #222222;
-  background: #ffffff;
+  color: var(--text-primary);
+  background: var(--bg-page);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
 }
 
+/* ── Dark mode tokens — full teal palette ────────────────── */
+.dark {
+  --bg-page:      #001E1E;
+  --bg-surface:   #00312F;
+  --bg-card:      #014848;
+  --border:       #016764;
+  --text-primary: #e2fafa;
+  --text-muted:   #80c8c6;
+  --text-link:    #4dd9d4;
+
+  color: var(--text-primary);
+  background: var(--bg-page);
+}
+
+/* ── Base resets ─────────────────────────────────────────── */
 body {
   margin: 0;
   min-width: 320px;
+  background: var(--bg-page);
+  color: var(--text-primary);
+  transition: background 0.25s ease, color 0.25s ease;
 }
 
-button,
-input,
-textarea {
-  font: inherit;
-}
-
-button {
-  cursor: pointer;
-}
-body {
-  margin: 0;
-}
+button, input, textarea { font: inherit; }
+button { cursor: pointer; }
+p { margin: 0; }
 
 #root {
   width: 1126px;
   max-width: 100%;
   margin: 0 auto;
-  text-align: center;
   border-inline: 1px solid var(--border);
   min-height: 100svh;
   display: flex;
@@ -40,46 +62,97 @@ body {
   box-sizing: border-box;
 }
 
-h1,
-h2 {
-  font-family: var(--heading);
+h1, h2 {
   font-weight: 500;
-  color: var(--text-h);
+  color: var(--text-primary);
 }
-
 h1 {
   font-size: 56px;
   letter-spacing: -1.68px;
   margin: 32px 0;
-  @media (max-width: 1024px) {
-    font-size: 36px;
-    margin: 20px 0;
-  }
 }
 h2 {
   font-size: 24px;
   line-height: 118%;
   letter-spacing: -0.24px;
   margin: 0 0 8px;
-  @media (max-width: 1024px) {
-    font-size: 20px;
-  }
 }
-p {
-  margin: 0;
+@media (max-width: 1024px) {
+  h1 { font-size: 36px; margin: 20px 0; }
+  h2 { font-size: 20px; }
 }
 
-code,
-.counter {
-  font-family: var(--mono);
-  display: inline-flex;
-  border-radius: 4px;
-  color: var(--text-h);
+/* ── Dark mode surface overrides ─────────────────────────── */
+.dark .bg-white          { background-color: var(--bg-card) !important; }
+.dark .bg-gray-50        { background-color: var(--bg-surface) !important; }
+.dark .bg-gray-100       { background-color: var(--bg-surface) !important; }
+.dark .border-gray-200   { border-color: var(--border) !important; }
+.dark .text-gray-900     { color: var(--text-primary) !important; }
+.dark .text-gray-700     { color: var(--text-primary) !important; }
+.dark .text-gray-600     { color: var(--text-muted) !important; }
+.dark .text-gray-500     { color: var(--text-muted) !important; }
+.dark .text-gray-400     { color: var(--text-muted) !important; }
+.dark .divide-gray-300   { border-color: var(--border) !important; }
+.dark .border-gray-300   { border-color: var(--border) !important; }
+.dark .shadow-lg         { box-shadow: 0 8px 30px rgba(0,0,0,0.6) !important; }
+
+/* inputs & form fields */
+.dark input, .dark textarea, .dark select {
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border-color: var(--border);
 }
 
-code {
-  font-size: 15px;
-  line-height: 135%;
-  padding: 4px 8px;
-  background: var(--code-bg);
+/* ── Reusable teal button utilities ──────────────────────── */
+.btn-teal {
+  background: var(--teal);
+  color: #ffffff;
+  font-weight: 600;
+  border-radius: 0.5rem;
+  padding: 0.625rem 1.25rem;
+  transition: background 0.2s;
+}
+.btn-teal:hover { background: var(--teal-mid); }
+
+.btn-teal-outline {
+  border: 2px solid var(--teal);
+  color: var(--teal);
+  font-weight: 600;
+  border-radius: 0.5rem;
+  padding: 0.625rem 1.25rem;
+  transition: background 0.2s, color 0.2s;
+}
+.btn-teal-outline:hover { background: var(--teal); color: #ffffff; }
+
+/* Primary CTA — teal gradient */
+.btn-primary {
+  background: linear-gradient(135deg, #016764 0%, #014848 100%);
+  color: #ffffff;
+  font-weight: 600;
+  border-radius: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  width: 100%;
+  transition: opacity 0.2s;
+}
+.btn-primary:hover { opacity: 0.9; }
+
+/* Section heading teal underline */
+.heading-teal::after {
+  content: '';
+  display: block;
+  width: 3rem;
+  height: 3px;
+  background: var(--teal);
+  border-radius: 2px;
+  margin-top: 6px;
+}
+
+/* Badge */
+.badge-teal {
+  background: var(--teal);
+  color: #ffffff;
+  font-size: 0.7rem;
+  font-weight: 600;
+  border-radius: 9999px;
+  padding: 0.2rem 0.7rem;
 }

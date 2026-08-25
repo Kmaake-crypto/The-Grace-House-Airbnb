@@ -19,14 +19,14 @@ const columns = [
 
 export default function Footer() {
   return (
-    <footer className="bg-gray-50 border-t border-gray-200 mt-16">
+    <footer className="border-t border-gray-200 mt-16" style={{ background: '#001E1E' }}>
       <div className="max-w-7xl mx-auto px-6 py-12 grid grid-cols-2 md:grid-cols-4 gap-8">
         {columns.map((col) => (
           <div key={col.title}>
-            <h4 className="font-semibold text-sm text-gray-900 mb-3">{col.title}</h4>
+            <h4 className="font-semibold text-sm mb-3" style={{ color: '#016764' }}>{col.title}</h4>
             <ul className="space-y-2">
               {col.links.map((link) => (
-                <li key={link} className="text-sm text-gray-600 hover:underline cursor-pointer">
+                <li key={link} className="text-sm text-gray-400 hover:text-white cursor-pointer transition-colors">
                   {link}
                 </li>
               ))}
@@ -34,15 +34,15 @@ export default function Footer() {
           </div>
         ))}
       </div>
-      <div className="border-t border-gray-200">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-gray-600">
+      <div className="border-t border-teal-dark" style={{ borderColor: '#016764' }}>
+        <div className="max-w-7xl mx-auto px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-gray-400">
           <span>&copy; 2026 Air B&amp;B, Inc. &middot; Privacy &middot; Terms &middot; Sitemap</span>
           <div className="flex items-center gap-4">
-            <span>English (US)</span>
-            <span>$ USD</span>
-            <span>Facebook</span>
-            <span>Twitter</span>
-            <span>Instagram</span>
+            <span>English (ZA)</span>
+            <span>🇿🇦 ZAR</span>
+            <span className="hover:text-white cursor-pointer transition-colors">Facebook</span>
+            <span className="hover:text-white cursor-pointer transition-colors">Twitter</span>
+            <span className="hover:text-white cursor-pointer transition-colors">Instagram</span>
           </div>
         </div>
       </div>

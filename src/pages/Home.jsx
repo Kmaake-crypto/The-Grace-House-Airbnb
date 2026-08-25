@@ -6,28 +6,22 @@ import ListingCard from '../components/ListingCard.jsx'
 import { inspirationHotels, listings } from '../data/listings.js'
 import heroImage from '../assets/bnb hero (2).png'
 
-// Top South African destinations for the quick-search strips
 const SA_CITIES = [
-  { name: 'Cape Town', region: 'Western Cape', query: 'Cape Town, South Africa', emoji: '🌊' },
-  { name: 'Johannesburg', region: 'Gauteng', query: 'Johannesburg, South Africa', emoji: '🏙️' },
-  { name: 'Durban', region: 'KwaZulu-Natal', query: 'Durban, South Africa', emoji: '🏖️' },
-  { name: 'Stellenbosch', region: 'Winelands', query: 'Stellenbosch, South Africa', emoji: '🍷' },
-  { name: 'Knysna', region: 'Garden Route', query: 'Knysna, South Africa', emoji: '🌿' },
-  { name: 'Kruger Park', region: 'Limpopo', query: 'Kruger Park, South Africa', emoji: '🦁' },
+  { name: 'Cape Town',     region: 'Western Cape',  query: 'Cape Town, South Africa',     emoji: '🌊' },
+  { name: 'Johannesburg',  region: 'Gauteng',        query: 'Johannesburg, South Africa',  emoji: '🏙️' },
+  { name: 'Durban',        region: 'KwaZulu-Natal',  query: 'Durban, South Africa',        emoji: '🏖️' },
+  { name: 'Stellenbosch',  region: 'Winelands',      query: 'Stellenbosch, South Africa',  emoji: '🍷' },
+  { name: 'Knysna',        region: 'Garden Route',   query: 'Knysna, South Africa',        emoji: '🌿' },
+  { name: 'Kruger Park',   region: 'Limpopo',        query: 'Kruger Park, South Africa',   emoji: '🦁' },
 ]
 
 export default function Home() {
   const navigate = useNavigate()
-
-  function goTo(query) {
-    navigate(`/search?location=${encodeURIComponent(query)}`)
-  }
-
-  // Show the first 4 SA fallback listings as featured cards
+  const goTo = (query) => navigate(`/search?location=${encodeURIComponent(query)}`)
   const featuredListings = listings.slice(0, 4)
 
   return (
-    <div>
+    <div className="transition-colors duration-300" style={{ background: 'var(--bg-page)', color: 'var(--text-primary)' }}>
       <Navbar dark showSearch={false} />
 
       {/* Search bar */}
@@ -35,16 +29,15 @@ export default function Home() {
         <SearchBar />
       </div>
 
-      {/* Hero banner */}
+      {/* Hero */}
       <div className="max-w-7xl mx-auto px-6">
         <div className="relative rounded-2xl overflow-hidden h-[420px]">
-          <img
-            src={heroImage}
-            alt="Featured stay"
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-black/30 flex flex-col items-center justify-center text-center gap-4 px-4">
-            <p className="text-white text-sm font-medium tracking-widest uppercase opacity-80">
+          <img src={heroImage} alt="Featured stay" className="w-full h-full object-cover" />
+          <div
+            className="absolute inset-0 flex flex-col items-center justify-center text-center gap-4 px-4"
+            style={{ background: 'linear-gradient(to bottom, rgba(0,30,30,0.6) 0%, rgba(1,103,100,0.4) 100%)' }}
+          >
+            <p className="text-white text-sm font-medium tracking-widest uppercase opacity-90">
               🇿🇦 South Africa&apos;s finest stays
             </p>
             <h1 className="text-white text-4xl font-semibold drop-shadow max-w-lg leading-tight">
@@ -52,7 +45,8 @@ export default function Home() {
             </h1>
             <button
               onClick={() => goTo('South Africa')}
-              className="bg-white text-gray-900 font-semibold rounded-full px-6 py-3 hover:bg-gray-100 transition-colors"
+              className="bg-white font-semibold rounded-full px-6 py-3 hover:opacity-90 transition-opacity"
+              style={{ color: '#016764' }}
             >
               I&apos;m flexible
             </button>
@@ -60,34 +54,35 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Quick-pick SA city grid */}
+      {/* SA city quick-picks */}
       <section className="max-w-7xl mx-auto px-6 py-12">
-        <h2 className="text-2xl font-semibold text-gray-900 mb-2">
+        <h2 className="text-2xl font-semibold mb-1" style={{ color: 'var(--text-primary)' }}>
           Explore South Africa
         </h2>
-        <p className="text-sm text-gray-500 mb-6">
-          All prices shown in South African Rand (ZAR)
+        <p className="text-sm mb-6" style={{ color: 'var(--text-muted)' }}>
+          All prices in South African Rand (ZAR)
         </p>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
           {SA_CITIES.map((city) => (
             <button
               key={city.name}
               onClick={() => goTo(city.query)}
-              className="flex flex-col items-center gap-2 p-4 rounded-xl border border-gray-200 hover:border-brand hover:shadow-md transition-all group"
+              className="flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all hover:shadow-md"
+              style={{ borderColor: 'var(--border)', background: 'var(--bg-card)', color: 'var(--text-primary)' }}
+              onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#016764'; e.currentTarget.style.color = '#016764' }}
+              onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--text-primary)' }}
             >
               <span className="text-3xl">{city.emoji}</span>
-              <span className="font-semibold text-sm text-gray-900 group-hover:text-brand">
-                {city.name}
-              </span>
-              <span className="text-xs text-gray-500">{city.region}</span>
+              <span className="font-semibold text-sm">{city.name}</span>
+              <span className="text-xs" style={{ color: 'var(--text-muted)' }}>{city.region}</span>
             </button>
           ))}
         </div>
       </section>
 
-      {/* Inspiration section — SA landmarks */}
+      {/* Inspiration */}
       <section className="max-w-7xl mx-auto px-6 py-8">
-        <h2 className="text-2xl font-semibold text-gray-900 mb-6">
+        <h2 className="text-2xl font-semibold mb-6" style={{ color: 'var(--text-primary)' }}>
           Inspiration for your next trip
         </h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -97,11 +92,7 @@ export default function Home() {
               onClick={() => goTo(`${hotel.name}, South Africa`)}
               className="relative rounded-xl overflow-hidden h-56 group cursor-pointer text-left w-full"
             >
-              <img
-                src={hotel.image}
-                alt={hotel.name}
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-              />
+              <img src={hotel.image} alt={hotel.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
               <div className="absolute bottom-4 left-4 text-white">
                 <h3 className="font-semibold leading-tight">{hotel.name}</h3>
@@ -112,16 +103,13 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Featured SA listings */}
+      {/* Featured listings */}
       <section className="max-w-7xl mx-auto px-6 py-8">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-semibold text-gray-900">
+          <h2 className="text-2xl font-semibold" style={{ color: 'var(--text-primary)' }}>
             Featured South African Stays
           </h2>
-          <a
-            href="/search?location=South+Africa"
-            className="text-sm font-semibold text-brand underline hover:no-underline"
-          >
+          <a href="/search?location=South+Africa" className="text-sm font-semibold underline hover:no-underline" style={{ color: '#016764' }}>
             Show all
           </a>
         </div>
@@ -132,52 +120,36 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Discover Experiences */}
+      {/* Experiences */}
       <section className="max-w-7xl mx-auto px-6 py-8">
-        <h2 className="text-2xl font-semibold text-gray-900 mb-6">
+        <h2 className="text-2xl font-semibold mb-6" style={{ color: 'var(--text-primary)' }}>
           Discover Airbnb Experiences
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="relative rounded-xl overflow-hidden h-64">
-            <img
-              src="https://images.unsplash.com/photo-1533130061792-64b345e4a833?w=1000&q=80"
-              alt="Things to do on your trip"
-              className="w-full h-full object-cover"
-            />
-            <div className="absolute inset-0 bg-black/30 flex flex-col justify-center pl-8 text-white gap-3">
-              <h3 className="text-2xl font-semibold max-w-[220px]">
-                Things to do on your trip
-              </h3>
-              <button className="bg-white text-gray-900 font-semibold rounded-md px-4 py-2 w-fit">
-                Experiences
-              </button>
+          {[
+            { src: 'https://images.unsplash.com/photo-1533130061792-64b345e4a833?w=1000&q=80', title: 'Things to do on your trip', cta: 'Experiences' },
+            { src: 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=1000&q=80', title: 'Things to do from home', cta: 'Online Experiences' },
+          ].map((card) => (
+            <div key={card.title} className="relative rounded-xl overflow-hidden h-64">
+              <img src={card.src} alt={card.title} className="w-full h-full object-cover" />
+              <div className="absolute inset-0 bg-black/30 flex flex-col justify-center pl-8 text-white gap-3">
+                <h3 className="text-2xl font-semibold max-w-[220px]">{card.title}</h3>
+                <button className="bg-white font-semibold rounded-md px-4 py-2 w-fit" style={{ color: '#016764' }}>
+                  {card.cta}
+                </button>
+              </div>
             </div>
-          </div>
-          <div className="relative rounded-xl overflow-hidden h-64">
-            <img
-              src="https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=1000&q=80"
-              alt="Things to do from home"
-              className="w-full h-full object-cover"
-            />
-            <div className="absolute inset-0 bg-black/30 flex flex-col justify-center pl-8 text-white gap-3">
-              <h3 className="text-2xl font-semibold max-w-[220px]">
-                Things to do from home
-              </h3>
-              <button className="bg-white text-gray-900 font-semibold rounded-md px-4 py-2 w-fit">
-                Online Experiences
-              </button>
-            </div>
-          </div>
+          ))}
         </div>
       </section>
 
       {/* Gift cards */}
       <section className="max-w-7xl mx-auto px-6 py-8 flex flex-col md:flex-row items-center gap-8">
         <div className="flex-1">
-          <h2 className="text-2xl font-semibold text-gray-900 mb-4">
+          <h2 className="text-2xl font-semibold mb-4" style={{ color: 'var(--text-primary)' }}>
             Shop Airbnb gift cards
           </h2>
-          <button className="bg-gray-900 text-white font-semibold rounded-md px-5 py-2.5">
+          <button className="font-semibold rounded-md px-5 py-2.5 text-white" style={{ background: 'var(--teal-dark)' }}>
             Learn more
           </button>
         </div>
@@ -191,16 +163,10 @@ export default function Home() {
       {/* Hosting CTA */}
       <section className="max-w-7xl mx-auto px-6 py-8">
         <div className="relative rounded-2xl overflow-hidden h-72">
-          <img
-            src="https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=1400&q=80"
-            alt="Questions about hosting"
-            className="w-full h-full object-cover"
-          />
+          <img src="https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=1400&q=80" alt="Questions about hosting" className="w-full h-full object-cover" />
           <div className="absolute inset-0 bg-black/40 flex flex-col justify-center pl-10 text-white gap-4">
-            <h3 className="text-4xl font-bold max-w-md">
-              Questions about hosting?
-            </h3>
-            <button className="bg-white text-gray-900 font-semibold rounded-md px-5 py-2.5 w-fit">
+            <h3 className="text-4xl font-bold max-w-md">Questions about hosting?</h3>
+            <button className="bg-white font-semibold rounded-md px-5 py-2.5 w-fit" style={{ color: '#016764' }}>
               Ask a Superhost
             </button>
           </div>

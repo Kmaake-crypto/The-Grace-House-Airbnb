@@ -2,6 +2,7 @@ import Navbar from '../components/Navbar.jsx'
 import Footer from '../components/Footer.jsx'
 import SearchBar from '../components/SearchBar.jsx'
 import { inspirationHotels } from '../data/listings.js'
+import heroImage from '../assets/bnb hero (2).png'
 
 export default function Home() {
   return (
@@ -15,7 +16,7 @@ export default function Home() {
       <div className="max-w-7xl mx-auto px-6">
         <div className="relative rounded-2xl overflow-hidden h-[420px]">
           <img
-            src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1600&q=80"
+            src={heroImage}
             alt="Featured stay"
             className="w-full h-full object-cover"
           />

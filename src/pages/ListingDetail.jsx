@@ -68,7 +68,7 @@ export default function ListingDetail() {
                 <span>✨</span>
                 <div>
                   <p className="font-semibold text-sm">Enhanced Clean</p>
-                  <p className="text-sm text-gray-500">This host committed to StayFinder&apos;s 5-step enhanced cleaning process. <span className="underline">Show more</span></p>
+                  <p className="text-sm text-gray-500">This host committed to Air B&amp;B&apos;s 5-step enhanced cleaning process. <span className="underline">Show more</span></p>
                 </div>
               </div>
               <div className="flex gap-4">

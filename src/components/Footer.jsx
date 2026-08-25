@@ -5,7 +5,7 @@ const columns = [
   },
   {
     title: 'Community',
-    links: ['StayFinder.org: disaster relief housing', 'Support Afghan refugees', 'Celebrating diversity & belonging', 'Combating discrimination'],
+    links: ['Air B&B.org: disaster relief housing', 'Support Afghan refugees', 'Celebrating diversity & belonging', 'Combating discrimination'],
   },
   {
     title: 'Hosting',
@@ -13,7 +13,7 @@ const columns = [
   },
   {
     title: 'About',
-    links: ['Newsroom', 'Learn about new features', 'Letter from our founders', 'Careers', 'Investors', 'StayFinder Luxe'],
+    links: ['Newsroom', 'Learn about new features', 'Letter from our founders', 'Careers', 'Investors', 'Air B&B Luxe'],
   },
 ]
 
@@ -36,7 +36,7 @@ export default function Footer() {
       </div>
       <div className="border-t border-gray-200">
         <div className="max-w-7xl mx-auto px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-gray-600">
-          <span>&copy; 2026 StayFinder, Inc. &middot; Privacy &middot; Terms &middot; Sitemap</span>
+          <span>&copy; 2026 Air B&amp;B, Inc. &middot; Privacy &middot; Terms &middot; Sitemap</span>
           <div className="flex items-center gap-4">
             <span>English (US)</span>
             <span>$ USD</span>

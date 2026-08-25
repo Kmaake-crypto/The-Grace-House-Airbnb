@@ -45,7 +45,7 @@ export default function Home() {
       </section>
 
       <section className="max-w-7xl mx-auto px-6 py-8">
-        <h2 className="text-2xl font-semibold text-gray-900 mb-6">Discover StayFinder Experiences</h2>
+        <h2 className="text-2xl font-semibold text-gray-900 mb-6">Discover Air B&amp;B Experiences</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="relative rounded-xl overflow-hidden h-64">
             <img src="https://images.unsplash.com/photo-1533130061792-64b345e4a833?w=1000&q=80" alt="Things to do on your trip" className="w-full h-full object-cover" />
@@ -66,7 +66,7 @@ export default function Home() {
 
       <section className="max-w-7xl mx-auto px-6 py-8 flex flex-col md:flex-row items-center gap-8">
         <div className="flex-1">
-          <h2 className="text-2xl font-semibold text-gray-900 mb-4">Shop StayFinder gift cards</h2>
+          <h2 className="text-2xl font-semibold text-gray-900 mb-4">Shop Air B&amp;B gift cards</h2>
           <button className="bg-gray-900 text-white font-semibold rounded-md px-5 py-2.5">Learn more</button>
         </div>
         <div className="flex-1 flex justify-center gap-[-20px]">

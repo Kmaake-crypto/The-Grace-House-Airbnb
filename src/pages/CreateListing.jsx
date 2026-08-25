@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import Navbar from '../components/Navbar.jsx'
 
 export default function CreateListing() {
   const navigate = useNavigate()
@@ -24,16 +25,7 @@ export default function CreateListing() {
 
   return (
     <div>
-      <header className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2">
-            <svg width="24" height="24" viewBox="0 0 32 32" fill="none">
-              <path d="M16 2C11 10 5 17.5 5 22.5C5 27.7 9.6 31 16 31C22.4 31 27 27.7 27 22.5C27 17.5 21 10 16 2Z" fill="#E31C5F" />
-            </svg>
-            <span className="font-bold text-lg text-brand">StayFinder</span>
-          </Link>
-        </div>
-      </header>
+      <Navbar showSearch={false} />
 
       <div className="max-w-5xl mx-auto px-6 py-10">
         <h1 className="text-2xl font-semibold text-gray-900 mb-8">Create Listing</h1>

@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { useState } from 'react'
 import Footer from '../components/Footer.jsx'
+import Navbar from '../components/Navbar.jsx'
 import { reservations, listings } from '../data/listings.js'
 
 export default function Dashboard() {
@@ -9,21 +10,14 @@ export default function Dashboard() {
 
   return (
     <div>
-      <header className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2">
-            <svg width="24" height="24" viewBox="0 0 32 32" fill="none">
-              <path d="M16 2C11 10 5 17.5 5 22.5C5 27.7 9.6 31 16 31C22.4 31 27 27.7 27 22.5C27 17.5 21 10 16 2Z" fill="#E31C5F" />
-            </svg>
-            <span className="font-bold text-lg text-brand">StayFinder</span>
-          </Link>
+      <Navbar showSearch={false} />
+      <div>
           <div className="flex items-center gap-2 text-sm text-gray-700">
             <span>John Doe</span>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h16v2H4zM4 11h16v2H4zM4 18h16v2H4z" /></svg>
             <span className="w-7 h-7 rounded-full bg-gray-300 inline-block" />
           </div>
-        </div>
-      </header>
+      </div>
 
       <div className="max-w-7xl mx-auto px-6 py-6">
         <div className="flex gap-3 mb-8">

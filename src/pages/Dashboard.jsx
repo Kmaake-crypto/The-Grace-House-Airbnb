@@ -1,23 +1,71 @@
 import { Link } from 'react-router-dom'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Footer from '../components/Footer.jsx'
 import Navbar from '../components/Navbar.jsx'
-import { reservations, listings } from '../data/listings.js'
+import { reservations as staticReservations, listings as staticListings } from '../data/listings.js'
+import { bookingsApi, listingsApi } from '../services/api.js'
 
 function zarFormat(amount) {
   return `R ${Number(amount).toLocaleString('en-ZA')}`
 }
 
-const STAT_CARDS = [
-  { label: 'Total Listings', value: listings.length, icon: '🏠' },
-  { label: 'Active Reservations', value: reservations.length, icon: '📅' },
-  { label: 'Monthly Revenue', value: zarFormat(listings.reduce((s, l) => s + l.price * 7, 0)), icon: '💰' },
-  { label: 'Avg. Rating', value: (listings.reduce((s, l) => s + l.rating, 0) / listings.length).toFixed(2), icon: '⭐' },
-]
+const STAT_CARDS = []   // computed inside component from live data
 
 export default function Dashboard() {
   const [tab, setTab] = useState('reservations')
-  const [rows, setRows] = useState(reservations)
+
+  // ── Bookings from MongoDB ──────────────────────────────
+  const [rows, setRows]               = useState([])
+  const [bookingsLoading, setBLoading] = useState(true)
+
+  // ── Listings from MongoDB (+ static fallback) ──────────
+  const [listings, setListings]         = useState(staticListings)
+  const [listingsLoading, setLLoading]  = useState(true)
+
+  useEffect(() => {
+    // Fetch bookings
+    bookingsApi.getAll()
+      .then((data) => {
+        // Normalise MongoDB bookings to match table shape
+        const normalised = data.bookings.map((b) => ({
+          id:       b._id,
+          bookedBy: b.guestName,
+          property: b.listingTitle,
+          checkin:  b.checkin,
+          checkout: b.checkout,
+          status:   b.status,
+          ref:      b.confirmationRef,
+        }))
+        setRows(normalised.length ? normalised : staticReservations)
+      })
+      .catch(() => setRows(staticReservations))
+      .finally(() => setBLoading(false))
+
+    // Fetch listings
+    listingsApi.getAll()
+      .then((data) => {
+        if (data.listings?.length) setListings(data.listings)
+        // else keep staticListings
+      })
+      .catch(() => {})
+      .finally(() => setLLoading(false))
+  }, [])
+
+  const statCards = [
+    { label: 'Total Listings',      value: listings.length,  icon: '🏠' },
+    { label: 'Active Reservations', value: rows.length,      icon: '📅' },
+    { label: 'Monthly Revenue',     value: zarFormat(listings.reduce((s, l) => s + (l.price ?? 0) * 7, 0)), icon: '💰' },
+    { label: 'Avg. Rating',         value: listings.length
+        ? (listings.reduce((s, l) => s + (l.rating ?? 0), 0) / listings.length).toFixed(2)
+        : '—', icon: '⭐' },
+  ]
+
+  async function handleDeleteBooking(idx) {
+    try {
+      if (rows[idx]?.id) await bookingsApi.cancel(rows[idx].id)
+    } catch (_) {}
+    setRows((prev) => prev.filter((_, i) => i !== idx))
+  }
 
   return (
     <div className="min-h-screen transition-colors duration-300"
@@ -47,7 +95,7 @@ export default function Dashboard() {
 
         {/* Stat cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          {STAT_CARDS.map((s) => (
+          {statCards.map((s) => (
             <div key={s.label} className="rounded-xl p-5 flex flex-col gap-2"
               style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
               <span className="text-2xl">{s.icon}</span>
@@ -105,10 +153,10 @@ export default function Dashboard() {
                       <td className="px-4 py-3" style={{ color: 'var(--text-muted)' }}>{r.checkout}</td>
                       <td className="px-4 py-3 text-right">
                         <button
-                          onClick={() => setRows(rows.filter((_, idx) => idx !== i))}
+                          onClick={() => handleDeleteBooking(i)}
                           className="text-xs font-semibold rounded-md px-4 py-1.5 text-white transition-opacity hover:opacity-80"
                           style={{ background: 'linear-gradient(135deg,#016764,#001E1E)' }}>
-                          Delete
+                          Cancel
                         </button>
                       </td>
                     </tr>

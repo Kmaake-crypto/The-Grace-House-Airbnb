@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { bookingsApi } from '../services/api.js'
 
 function zarFormat(n) {
   return `R ${Number(n).toLocaleString('en-ZA')}`
@@ -27,6 +28,10 @@ export default function BookingModal({ listing, onClose }) {
   const [checkin, setCheckin]   = useState(today)
   const [checkout, setCheckout] = useState(addDays(today, 7))
   const [guests, setGuests]     = useState(1)
+  const [guestName,  setGuestName]  = useState('')
+  const [guestEmail, setGuestEmail] = useState('')
+  const [saving, setSaving]         = useState(false)
+  const [confirmRef, setConfirmRef] = useState(null)
 
   const nights       = diffDays(checkin, checkout)
   const nightlyRate  = listing.price ?? 0
@@ -90,6 +95,24 @@ export default function BookingModal({ listing, onClose }) {
         {/* ── Step: form ── */}
         {step === 'form' && (
           <div className="px-6 py-5 space-y-4">
+            {/* Guest info */}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-[10px] font-semibold uppercase mb-1"
+                  style={{ color: '#016764' }}>Your Name</label>
+                <input type="text" style={inputStyle} value={guestName}
+                  onChange={(e) => setGuestName(e.target.value)}
+                  placeholder="Full name" />
+              </div>
+              <div>
+                <label className="block text-[10px] font-semibold uppercase mb-1"
+                  style={{ color: '#016764' }}>Email</label>
+                <input type="email" style={inputStyle} value={guestEmail}
+                  onChange={(e) => setGuestEmail(e.target.value)}
+                  placeholder="you@email.com" />
+              </div>
+            </div>
+
             {/* Date row */}
             <div className="grid grid-cols-2 gap-3">
               <div>
@@ -213,10 +236,38 @@ export default function BookingModal({ listing, onClose }) {
                 style={{ background: 'var(--bg-surface)', color: 'var(--text-primary)', border: '1px solid var(--border)' }}>
                 Back
               </button>
-              <button onClick={() => setStep('done')}
-                className="flex-1 font-semibold rounded-xl py-2.5 text-sm text-white transition-opacity hover:opacity-90"
+              <button onClick={async () => {
+                  setSaving(true)
+                  try {
+                    const res = await bookingsApi.create({
+                      externalListingId: String(listing.id),
+                      listingTitle:   listing.title,
+                      listingLocation: listing.location,
+                      listingImage:   listing.image,
+                      guestName:  guestName  || 'Guest',
+                      guestEmail: guestEmail || 'guest@example.com',
+                      guests,
+                      checkin,
+                      checkout,
+                      nights,
+                      nightlyRate:  nightlyRate,
+                      subtotal,
+                      cleaningFee,
+                      serviceFee,
+                      totalAmount: total,
+                    })
+                    setConfirmRef(res.booking?.confirmationRef || null)
+                  } catch (err) {
+                    console.warn('Booking save failed (offline?):', err.message)
+                  } finally {
+                    setSaving(false)
+                    setStep('done')
+                  }
+                }}
+                disabled={saving}
+                className="flex-1 font-semibold rounded-xl py-2.5 text-sm text-white transition-opacity hover:opacity-90 disabled:opacity-50"
                 style={{ background: 'linear-gradient(135deg,#016764,#001E1E)' }}>
-                Confirm &amp; Reserve
+                {saving ? 'Saving…' : 'Confirm & Reserve'}
               </button>
             </div>
           </div>
@@ -237,6 +288,12 @@ export default function BookingModal({ listing, onClose }) {
               for {nights} night{nights > 1 ? 's' : ''} — {checkin} to {checkout}.
             </p>
             <p className="font-bold text-lg" style={{ color: '#016764' }}>{zarFormat(total)}</p>
+            {confirmRef && (
+              <p className="text-xs font-mono px-3 py-1 rounded-full"
+                style={{ background: 'rgba(1,103,100,0.15)', color: '#016764' }}>
+                Ref: {confirmRef}
+              </p>
+            )}
             <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
               A confirmation will be sent to your registered email.
             </p>

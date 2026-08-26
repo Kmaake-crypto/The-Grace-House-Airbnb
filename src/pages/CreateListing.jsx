@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import Navbar from '../components/Navbar.jsx'
+import { listingsApi } from '../services/api.js'
 
 const AMENITY_OPTIONS = [
   'Wifi', 'Kitchen', 'Free parking', 'Pool', 'Air conditioning',
@@ -20,6 +21,8 @@ export default function CreateListing() {
   })
   const [imagePreview, setImagePreview] = useState(null)
   const [errors, setErrors] = useState({})
+  const [saving, setSaving] = useState(false)
+  const [apiError, setApiError] = useState(null)
 
   function update(field, value) {
     setForm((f) => ({ ...f, [field]: value }))
@@ -52,12 +55,35 @@ export default function CreateListing() {
     return e
   }
 
-  function handleCreate(e) {
+  async function handleCreate(e) {
     e.preventDefault()
     const e2 = validate()
     if (Object.keys(e2).length) { setErrors(e2); return }
-    // In a real app this would POST to an API
-    navigate('/dashboard')
+
+    setSaving(true)
+    setApiError(null)
+
+    try {
+      await listingsApi.create({
+        title:       form.name,
+        location:    form.location,
+        description: form.description,
+        type:        form.type,
+        beds:        Number(form.rooms) || 1,
+        baths:       Number(form.baths) || 1,
+        guests:      Number(form.guests) || 2,
+        price:       Number(form.price),
+        amenities:   form.amenities,
+        image:       imagePreview || '',
+        gallery:     imagePreview ? [imagePreview] : [],
+        currency:    'ZAR',
+      })
+      navigate('/dashboard')
+    } catch (err) {
+      setApiError(err.message)
+    } finally {
+      setSaving(false)
+    }
   }
 
   const inputStyle = {
@@ -98,6 +124,14 @@ export default function CreateListing() {
             List your South African property and start earning in ZAR
           </p>
         </div>
+
+        {/* API error */}
+        {apiError && (
+          <div className="mb-6 text-sm rounded-lg px-4 py-3"
+            style={{ background: 'rgba(227,28,95,0.1)', border: '1px solid #E31C5F', color: '#E31C5F' }}>
+            {apiError} — check that the backend server is running.
+          </div>
+        )}
 
         <form onSubmit={handleCreate}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -234,9 +268,10 @@ export default function CreateListing() {
                 Cancel
               </Link>
               <button type="submit"
-                className="font-semibold rounded-lg px-8 py-2.5 text-sm text-white transition-opacity hover:opacity-90"
+                disabled={saving}
+                className="font-semibold rounded-lg px-8 py-2.5 text-sm text-white transition-opacity hover:opacity-90 disabled:opacity-50"
                 style={{ background: 'linear-gradient(135deg, #016764 0%, #001E1E 100%)' }}>
-                Create Listing
+                {saving ? 'Saving…' : 'Create Listing'}
               </button>
             </div>
 

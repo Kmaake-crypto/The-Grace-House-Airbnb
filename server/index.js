@@ -38,6 +38,9 @@ app.use('/api/users',    userRoutes)
 // ── Global error handler ──────────────────────────────────
 app.use((err, _req, res, _next) => {
   console.error('[Error]', err.message)
+  if (err.type === 'entity.parse.failed') {
+    return res.status(400).json({ success: false, message: 'Request body must be valid JSON' })
+  }
   res.status(err.status || 500).json({
     success: false,
     message: err.message || 'Internal server error',

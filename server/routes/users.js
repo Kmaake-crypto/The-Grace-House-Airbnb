@@ -1,7 +1,16 @@
 import { Router } from 'express'
+import jwt from 'jsonwebtoken'
 import User from '../models/User.js'
 
 const router = Router()
+
+function createToken(user) {
+  return jwt.sign(
+    { sub: user._id.toString(), role: user.role },
+    process.env.JWT_SECRET || 'development-secret-change-me',
+    { expiresIn: '7d' },
+  )
+}
 
 // ── GET /api/users ─────────────────────────────────────────
 router.get('/', async (_req, res) => {
@@ -41,7 +50,7 @@ router.post('/register', async (req, res) => {
     user.setPassword(password)
     await user.save()
 
-    res.status(201).json({ success: true, user })
+    res.status(201).json({ success: true, user, token: createToken(user) })
   } catch (err) {
     res.status(400).json({ success: false, message: err.message })
   }
@@ -62,7 +71,7 @@ router.post('/login', async (req, res) => {
 
     // Strip passwordHash before returning
     const { passwordHash: _pw, ...safe } = user.toObject()
-    res.json({ success: true, user: safe })
+    res.json({ success: true, user: safe, token: createToken(user) })
   } catch (err) {
     res.status(500).json({ success: false, message: err.message })
   }

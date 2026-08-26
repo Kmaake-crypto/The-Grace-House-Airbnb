@@ -7,12 +7,27 @@
 const BASE = '/api'
 
 async function request(path, options = {}) {
+  const token = localStorage.getItem('airbnb-auth')
+  let authHeader = {}
+  try {
+    const session = JSON.parse(token)
+    if (session?.token) authHeader = { Authorization: `Bearer ${session.token}` }
+  } catch {
+    authHeader = {}
+  }
+
   const res = await fetch(`${BASE}${path}`, {
-    headers: { 'Content-Type': 'application/json', ...options.headers },
+    headers: { 'Content-Type': 'application/json', ...authHeader, ...options.headers },
     ...options,
   })
 
-  const data = await res.json().catch(() => ({ success: false, message: 'Invalid JSON response' }))
+  const responseText = await res.text()
+  let data
+  try {
+    data = responseText ? JSON.parse(responseText) : {}
+  } catch {
+    data = { success: false, message: `Server returned an invalid response (${res.status})` }
+  }
 
   if (!res.ok) {
     throw new Error(data.message || `Request failed: ${res.status}`)

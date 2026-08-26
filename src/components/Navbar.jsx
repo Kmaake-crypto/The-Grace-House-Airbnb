@@ -3,15 +3,16 @@ import { Link } from 'react-router-dom'
 import SearchBar from './SearchBar.jsx'
 import logo from '../assets/airbnb.png'
 import { useTheme } from '../context/ThemeContext.jsx'
+import { useAuth } from '../context/useAuth.js'
 
 export default function Navbar({ dark = false, showSearch = true }) {
   const { isDark, toggle } = useTheme()
+  const { isAuthenticated, logout } = useAuth()
   const [menuOpen, setMenuOpen] = useState(false)
 
-  const navLinks = [
-    { to: '/dashboard', label: 'Dashboard' },
-    { to: '/create-listing', label: 'Host' },
-  ]
+  const navLinks = isAuthenticated
+    ? [{ to: '/dashboard', label: 'Dashboard' }, { to: '/create-listing', label: 'Host' }]
+    : [{ to: '/login', label: 'Sign in' }, { to: '/register', label: 'Join' }]
 
   return (
     <header
@@ -44,6 +45,7 @@ export default function Navbar({ dark = false, showSearch = true }) {
           {navLinks.map(({ to, label }) => (
             <Link key={to} to={to} className="hover:underline">{label}</Link>
           ))}
+          {isAuthenticated && <button onClick={logout} className="hover:underline">Log out</button>}
 
           {/* Dark / Light toggle */}
           <button
@@ -115,6 +117,15 @@ export default function Navbar({ dark = false, showSearch = true }) {
               {label}
             </Link>
           ))}
+          {isAuthenticated && (
+            <button
+              onClick={() => { logout(); setMenuOpen(false) }}
+              className="text-left text-sm font-semibold py-2 px-3 rounded-lg"
+              style={{ color: 'var(--text-primary)', background: 'var(--bg-surface)' }}
+            >
+              Log out
+            </button>
+          )}
         </div>
       )}
     </header>

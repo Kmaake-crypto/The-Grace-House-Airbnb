@@ -7,6 +7,7 @@
     "dev": "vite",
     "dev:server": "nodemon --experimental-vm-modules server/index.js",
     "dev:all": "concurrently \"npm run dev\" \"npm run dev:server\"",
+    "db:seed:user": "node server/seed-user.js",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview"

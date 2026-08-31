@@ -1,6 +1,12 @@
 import { Router } from 'express'
 import jwt from 'jsonwebtoken'
+import mongoose from 'mongoose'
 import User from '../models/User.js'
+import {
+  createFallbackUser,
+  getFallbackUserByEmail,
+  verifyFallbackPassword,
+} from '../fallbackStore.js'
 
 const router = Router()
 
@@ -41,12 +47,35 @@ router.post('/register', async (req, res) => {
       return res.status(400).json({ success: false, message: 'name, email and password are required' })
     }
 
-    const existing = await User.findOne({ email: email.toLowerCase() })
+    const normalizedEmail = email.toLowerCase()
+    const fallbackUser = getFallbackUserByEmail(normalizedEmail)
+    if (fallbackUser) {
+      return res.status(409).json({ success: false, message: 'Email already registered' })
+    }
+
+    if (mongoose.connection.readyState !== 1) {
+      const created = createFallbackUser({
+        name,
+        email: normalizedEmail,
+        password,
+        phone,
+        role: role || 'guest',
+      })
+
+      if (!created) {
+        return res.status(409).json({ success: false, message: 'Email already registered' })
+      }
+
+      const { passwordHash: _pw, ...safe } = created
+      return res.status(201).json({ success: true, user: safe, token: createToken({ _id: created._id, role: created.role }) })
+    }
+
+    const existing = await User.findOne({ email: normalizedEmail })
     if (existing) {
       return res.status(409).json({ success: false, message: 'Email already registered' })
     }
 
-    const user = new User({ name, email, phone, role: role || 'guest' })
+    const user = new User({ name, email: normalizedEmail, phone, role: role || 'guest' })
     user.setPassword(password)
     await user.save()
 
@@ -64,12 +93,22 @@ router.post('/login', async (req, res) => {
       return res.status(400).json({ success: false, message: 'email and password are required' })
     }
 
-    const user = await User.findOne({ email: email.toLowerCase(), isActive: true }).select('+passwordHash')
+    const normalizedEmail = email.toLowerCase()
+    const fallbackUser = getFallbackUserByEmail(normalizedEmail)
+    if (fallbackUser && verifyFallbackPassword(normalizedEmail, password)) {
+      const { passwordHash: _pw, ...safe } = fallbackUser
+      return res.json({ success: true, user: safe, token: createToken({ _id: fallbackUser._id, role: fallbackUser.role }) })
+    }
+
+    if (mongoose.connection.readyState !== 1) {
+      return res.status(401).json({ success: false, message: 'Invalid email or password' })
+    }
+
+    const user = await User.findOne({ email: normalizedEmail, isActive: true }).select('+passwordHash')
     if (!user || !user.checkPassword(password)) {
       return res.status(401).json({ success: false, message: 'Invalid email or password' })
     }
 
-    // Strip passwordHash before returning
     const { passwordHash: _pw, ...safe } = user.toObject()
     res.json({ success: true, user: safe, token: createToken(user) })
   } catch (err) {

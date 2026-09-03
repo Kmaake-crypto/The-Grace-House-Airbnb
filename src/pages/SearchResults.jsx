@@ -1,10 +1,11 @@
 import { useSearchParams, useNavigate } from 'react-router-dom'
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import Navbar from '../components/Navbar.jsx'
 import ListingCard from '../components/ListingCard.jsx'
 import { useTaplineListings } from '../hooks/useTaplineListings.js'
 
 const filters = ['Free cancellation', 'Type of place', 'Price', 'Instant Book', 'More filters']
+const propertyTypes = ['Entire home', 'Entire apartment', 'Entire villa', 'Entire cottage', 'Private room', 'Entire studio']
 
 /**
  * Each destination has:
@@ -76,6 +77,13 @@ export default function SearchResults() {
   const locationParam = params.get('location') || 'South Africa'
 
   const { listings, loading, error } = useTaplineListings(locationParam)
+  const [openFilter, setOpenFilter] = useState(null)
+  const [selectedType, setSelectedType] = useState('')
+  const [priceLimit, setPriceLimit] = useState('')
+  const [freeCancellation, setFreeCancellation] = useState(false)
+  const [instantBook, setInstantBook] = useState(false)
+  const [guestLimit, setGuestLimit] = useState('')
+  const [amenity, setAmenity] = useState('')
 
   const activeKeyword = getActiveKeyword(locationParam)
   const activeDestination = getLocationMatch(locationParam)
@@ -91,16 +99,41 @@ export default function SearchResults() {
         return query.split(/\s+/).filter(Boolean).some((term) => searchable.includes(term))
       })
     }
-    return listings.filter((l) =>
+    const locationListings = listings.filter((l) =>
       l.location.toLowerCase().replace(/[^a-z0-9]/g, '').includes(activeKeyword.replace(/[^a-z0-9]/g, ''))
     )
+    return locationListings
   }, [listings, activeKeyword, locationParam])
+
+  const visibleListings = useMemo(() => filteredListings.filter((listing) => {
+    if (selectedType && listing.type !== selectedType) return false
+    if (priceLimit && Number(listing.price) > Number(priceLimit)) return false
+    if (guestLimit && Number(listing.guests) < Number(guestLimit)) return false
+    if (amenity && !(listing.amenities || []).some((item) => item.toLowerCase().includes(amenity.toLowerCase()))) return false
+    if (freeCancellation && listing.freeCancellation === false) return false
+    if (instantBook && listing.instantBook === false) return false
+    return true
+  }), [filteredListings, selectedType, priceLimit, guestLimit, amenity, freeCancellation, instantBook])
+
+  function toggleFilter(filter) {
+    setOpenFilter((current) => current === filter ? null : filter)
+  }
+
+  function clearFilters() {
+    setSelectedType('')
+    setPriceLimit('')
+    setFreeCancellation(false)
+    setInstantBook(false)
+    setGuestLimit('')
+    setAmenity('')
+    setOpenFilter(null)
+  }
 
   function handleDestinationClick(dest) {
     navigate(`/search?location=${encodeURIComponent(dest.query)}`)
   }
 
-  const displayCount = filteredListings.length
+  const displayCount = visibleListings.length
 
   return (
     <div
@@ -113,19 +146,27 @@ export default function SearchResults() {
       <div style={{ borderBottom: '1px solid var(--border)' }}>
         <div className="max-w-7xl mx-auto px-6 py-3 flex flex-wrap items-center gap-4 text-sm">
           {filters.map((f) => (
-            <button
-              key={f}
-              className="flex items-center gap-1 rounded-full px-4 py-2 transition-colors"
-              style={{ border: '1px solid var(--border)', color: 'var(--text-primary)', background: 'var(--bg-card)' }}
-              onMouseEnter={(e) => e.currentTarget.style.borderColor = '#016764'}
-              onMouseLeave={(e) => e.currentTarget.style.borderColor = 'var(--border)'}
-            >
-              {f}
-              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                <path d="M6 9l6 6 6-6" />
-              </svg>
-            </button>
+            <div key={f} className="relative">
+              <button
+                onClick={() => toggleFilter(f)}
+                className="flex items-center gap-1 rounded-full px-4 py-2 transition-colors"
+                style={{ border: `1px solid ${openFilter === f ? '#016764' : 'var(--border)'}`, color: 'var(--text-primary)', background: 'var(--bg-card)' }}
+              >
+                {f}
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M6 9l6 6 6-6" /></svg>
+              </button>
+              {openFilter === f && (
+                <div className="absolute left-0 top-11 z-30 w-64 rounded-xl p-4 shadow-xl" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+                  {f === 'Free cancellation' && <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={freeCancellation} onChange={(e) => setFreeCancellation(e.target.checked)} /> Free cancellation</label>}
+                  {f === 'Instant Book' && <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={instantBook} onChange={(e) => setInstantBook(e.target.checked)} /> Available for instant booking</label>}
+                  {f === 'Type of place' && <select value={selectedType} onChange={(e) => setSelectedType(e.target.value)} className="input w-full"><option value="">All property types</option>{propertyTypes.map((type) => <option key={type}>{type}</option>)}</select>}
+                  {f === 'Price' && <label className="block text-sm">Maximum nightly price (ZAR)<input type="number" min="0" value={priceLimit} onChange={(e) => setPriceLimit(e.target.value)} placeholder="No maximum" className="input mt-2 w-full" /></label>}
+                  {f === 'More filters' && <div className="space-y-3"><label className="block text-sm">Minimum guests<input type="number" min="1" value={guestLimit} onChange={(e) => setGuestLimit(e.target.value)} className="input mt-1 w-full" /></label><label className="block text-sm">Amenity<input value={amenity} onChange={(e) => setAmenity(e.target.value)} placeholder="e.g. Pool" className="input mt-1 w-full" /></label></div>}
+                </div>
+              )}
+            </div>
           ))}
+          {(selectedType || priceLimit || freeCancellation || instantBook || guestLimit || amenity) && <button onClick={clearFilters} className="text-sm font-semibold underline" style={{ color: '#016764' }}>Clear filters</button>}
         </div>
       </div>
 
@@ -173,7 +214,7 @@ export default function SearchResults() {
             {loading ? (
               <LoadingSkeleton />
             ) : (
-              filteredListings.map((l) => (
+              visibleListings.map((l) => (
                 <ListingCard key={l.id} listing={l} layout="row" />
               ))
             )}

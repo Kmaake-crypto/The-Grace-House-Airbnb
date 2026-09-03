@@ -5,7 +5,10 @@ import { listingsApi } from '../services/api.js'
 
 const AMENITY_OPTIONS = [
   'Wifi', 'Kitchen', 'Free parking', 'Pool', 'Air conditioning',
-  'Braai / BBQ', 'Washing machine', 'TV', 'Pets allowed', 'Workspace',
+  'Braai / BBQ', 'Washing machine', 'TV', 'Smart TV', 'Streaming services',
+  'Pets allowed', 'Workspace', 'Gym access', 'Beach access', 'Beach gear',
+  'Surfboards', 'Wine tasting', 'Vineyard access', 'Bikes', 'Kayaks',
+  'Game drives', 'Guided walks', 'Outdoor dining', 'Boma / fire pit', '24-hour security',
 ]
 
 const PROPERTY_TYPES = ['Entire home', 'Entire apartment', 'Private room', 'Shared room', 'Entire studio']

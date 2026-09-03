@@ -29,7 +29,7 @@ export const listings = [
     ],
     amenities: [
       'Ocean view', 'Wifi', 'Pool', 'Free parking', 'Kitchen',
-      'Air conditioning', 'Braai / BBQ', 'Washing machine', 'TV', 'Pets allowed',
+      'Air conditioning', 'Braai / BBQ', 'Washing machine', 'Smart TV', 'Streaming services', 'Beach gear', 'Pets allowed',
     ],
     description:
       "Wake up to the sound of waves at this stunning Clifton villa. Perched above one of Cape Town's most famous beaches, you get uninterrupted Atlantic Ocean views, a private pool, and all the comforts of a luxury home. Walk to the beach in under two minutes.",
@@ -57,7 +57,7 @@ export const listings = [
     ],
     amenities: [
       'City view', 'Wifi', 'Gym access', 'Free parking', 'Kitchen',
-      'Air conditioning', 'Concierge', 'Security', 'TV', 'Coffee machine',
+      'Air conditioning', 'Concierge', 'Security', 'Smart TV', 'Streaming services', 'Workspace', 'Coffee machine',
     ],
     description:
       "Sleek, modern apartment in the heart of Sandton — South Africa's financial capital. Steps from Sandton City Mall, Nelson Mandela Square, and the Gautrain station. Perfect for business travellers or a stylish city break.",
@@ -85,7 +85,7 @@ export const listings = [
     ],
     amenities: [
       'Mountain view', 'Wifi', 'Vineyard access', 'Free parking', 'Full kitchen',
-      'Braai / BBQ', 'Fire pit', 'Washing machine', 'Farm animals', 'Bikes',
+      'Braai / BBQ', 'Fire pit', 'Washing machine', 'Smart TV', 'Wine tasting', 'Farm animals', 'Bikes',
     ],
     description:
       'Escape to the Cape Winelands in this charming whitewashed farmhouse surrounded by vineyards and mountain views. Enjoy private wine tastings, morning hikes on the property, and evenings around the fire pit under the stars.',
@@ -113,7 +113,7 @@ export const listings = [
     ],
     amenities: [
       'Harbour view', 'Wifi', 'Kitchenette', 'Air conditioning',
-      'Smart TV', 'Workspace', 'Gym access', 'Concierge',
+      'Smart TV', 'Streaming services', 'Workspace', 'Gym access', 'Concierge',
     ],
     description:
       'Contemporary studio right at the V&A Waterfront. Walk to the Two Oceans Aquarium, top restaurants, and boat trips to Robben Island. Table Mountain is visible from your window — the perfect Cape Town base.',
@@ -141,7 +141,7 @@ export const listings = [
     ],
     amenities: [
       'Beach access', 'Wifi', 'Pool', 'Outdoor shower', 'Kitchen',
-      'Braai / BBQ', 'Surfboards', 'Free parking', 'Air conditioning', 'TV',
+      'Braai / BBQ', 'Surfboards', 'Beach gear', 'Free parking', 'Air conditioning', 'Smart TV', 'Streaming services',
     ],
     description:
       "Laid-back bungalow steps from Umhlanga's famous Blue Flag beach. Warm Indian Ocean water year-round, a private pool for cooler days, and easy access to Gateway Theatre of Shopping and KwaZulu-Natal's best restaurants.",
@@ -169,7 +169,7 @@ export const listings = [
     ],
     amenities: [
       'Bush view', 'Wifi', 'Game drives included', 'All meals included',
-      'Pool', 'Air conditioning', 'Laundry service', 'Guided walks',
+      'Pool', 'Air conditioning', 'Smart TV', 'Game drives included', 'Laundry service', 'Guided walks',
     ],
     description:
       'Fall asleep to lion roars and wake to elephant sightings from this en-suite lodge room on the edge of the Greater Kruger National Park. Twice-daily game drives, bush walks, and all meals are included in the rate.',
@@ -249,6 +249,14 @@ export const listings = [
     },
   ].map((mockup) => ({
     ...mockup,
+    amenities: {
+      'Cape Town': ['Wifi', 'Free parking', 'Kitchen', 'Smart TV', 'Streaming services', 'Beach gear', 'Braai / BBQ', 'Air conditioning'],
+      Johannesburg: ['Wifi', 'Free parking', 'Kitchen', 'Smart TV', 'Streaming services', 'Workspace', 'Gym access', '24-hour security'],
+      Durban: ['Wifi', 'Free parking', 'Kitchen', 'Smart TV', 'Streaming services', 'Beach access', 'Surfboards', 'Outdoor shower'],
+      Stellenbosch: ['Wifi', 'Free parking', 'Full kitchen', 'Smart TV', 'Wine tasting', 'Vineyard access', 'Bikes', 'Fire pit'],
+      Knysna: ['Wifi', 'Free parking', 'Kitchen', 'Smart TV', 'Streaming services', 'Kayaks', 'Beach access', 'Braai / BBQ'],
+      'Kruger Park': ['Wifi', 'Free parking', 'Kitchen', 'Outdoor dining', 'Game drives', 'Guided walks', 'Pool', 'Boma / fire pit'],
+    }[mockup.city],
     location: `${mockup.area}, ${mockup.city}, South Africa`,
     currency: 'ZAR',
     priceFormatted: `R ${mockup.price.toLocaleString('en-ZA')}`,
@@ -256,7 +264,7 @@ export const listings = [
     reviews: 36,
     hostSince: '2022',
     gallery: [mockup.image],
-    amenities: [mockup.feature, 'Wifi', 'Free parking', 'Kitchen', 'Braai / BBQ', 'Air conditioning'],
+    feature: undefined,
   })),
 ]
 

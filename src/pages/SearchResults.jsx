@@ -75,8 +75,13 @@ export default function SearchResults() {
   const [params] = useSearchParams()
   const navigate  = useNavigate()
   const locationParam = params.get('location') || 'South Africa'
+  const requestedGuests = Number(params.get('guests') || 0)
 
-  const { listings, loading, error } = useTaplineListings(locationParam)
+  const { listings, loading, error } = useTaplineListings(locationParam, {
+    checkin: params.get('checkin') || '',
+    checkout: params.get('checkout') || '',
+    guests: requestedGuests || '',
+  })
   const [openFilter, setOpenFilter] = useState(null)
   const [selectedType, setSelectedType] = useState('')
   const [priceLimit, setPriceLimit] = useState('')
@@ -110,10 +115,11 @@ export default function SearchResults() {
     if (priceLimit && Number(listing.price) > Number(priceLimit)) return false
     if (guestLimit && Number(listing.guests) < Number(guestLimit)) return false
     if (amenity && !(listing.amenities || []).some((item) => item.toLowerCase().includes(amenity.toLowerCase()))) return false
+    if (requestedGuests && Number(listing.guests) < requestedGuests) return false
     if (freeCancellation && listing.freeCancellation === false) return false
     if (instantBook && listing.instantBook === false) return false
     return true
-  }), [filteredListings, selectedType, priceLimit, guestLimit, amenity, freeCancellation, instantBook])
+  }), [filteredListings, selectedType, priceLimit, guestLimit, amenity, freeCancellation, instantBook, requestedGuests])
 
   function toggleFilter(filter) {
     setOpenFilter((current) => current === filter ? null : filter)
@@ -141,7 +147,6 @@ export default function SearchResults() {
       style={{ background: 'var(--bg-page)', color: 'var(--text-primary)' }}
     >
       <Navbar />
-
       {/* Filter bar */}
       <div style={{ borderBottom: '1px solid var(--border)' }}>
         <div className="max-w-7xl mx-auto px-6 py-3 flex flex-wrap items-center gap-4 text-sm">

@@ -38,7 +38,7 @@ export function useTaplineListings(location = 'South Africa', options = {}) {
     } finally {
       setLoading(false)
     }
-  }, [location]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [location, options.checkin, options.checkout, options.guests]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     fetchListings()

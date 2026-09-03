@@ -3,11 +3,18 @@ import { useState } from 'react'
 
 export default function SearchBar({ compact = false }) {
   const [where, setWhere] = useState('')
+  const [checkin, setCheckin] = useState('')
+  const [checkout, setCheckout] = useState('')
+  const [guests, setGuests] = useState('')
   const navigate = useNavigate()
 
   function handleSearch(e) {
     e.preventDefault()
-    navigate(`/search?location=${encodeURIComponent(where || 'South Africa')}`)
+    const params = new URLSearchParams({ location: where || 'South Africa' })
+    if (checkin) params.set('checkin', checkin)
+    if (checkout) params.set('checkout', checkout)
+    if (guests) params.set('guests', guests)
+    navigate(`/search?${params.toString()}`)
   }
 
   if (compact) {
@@ -56,16 +63,16 @@ export default function SearchBar({ compact = false }) {
       </div>
       <div className="flex-1 px-6 py-3" style={{ borderLeft: '1px solid var(--border)' }}>
         <label className="block text-xs font-semibold" style={{ color: 'var(--text-primary)' }}>Check in</label>
-        <span className="block text-sm" style={{ color: 'var(--text-muted)' }}>Add dates</span>
+        <input type="date" value={checkin} onChange={(e) => setCheckin(e.target.value)} min={new Date().toISOString().split('T')[0]} className="w-full text-sm focus:outline-none bg-transparent" style={{ color: 'var(--text-muted)' }} />
       </div>
       <div className="flex-1 px-6 py-3" style={{ borderLeft: '1px solid var(--border)' }}>
         <label className="block text-xs font-semibold" style={{ color: 'var(--text-primary)' }}>Check out</label>
-        <span className="block text-sm" style={{ color: 'var(--text-muted)' }}>Add dates</span>
+        <input type="date" value={checkout} onChange={(e) => setCheckout(e.target.value)} min={checkin || new Date().toISOString().split('T')[0]} className="w-full text-sm focus:outline-none bg-transparent" style={{ color: 'var(--text-muted)' }} />
       </div>
       <div className="flex-1 px-6 py-3 flex items-center justify-between" style={{ borderLeft: '1px solid var(--border)' }}>
         <div>
           <label className="block text-xs font-semibold" style={{ color: 'var(--text-primary)' }}>Guests</label>
-          <span className="block text-sm" style={{ color: 'var(--text-muted)' }}>Add guests</span>
+          <input type="number" min="1" value={guests} onChange={(e) => setGuests(e.target.value)} placeholder="Add guests" className="w-full text-sm focus:outline-none bg-transparent" style={{ color: 'var(--text-muted)' }} />
         </div>
         <button
           type="submit"

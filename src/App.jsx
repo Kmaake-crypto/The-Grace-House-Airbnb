@@ -9,11 +9,12 @@ import Login from './pages/Login.jsx'
 import Register from './pages/Register.jsx'
 import { useAuth } from './context/useAuth.js'
 
-function ProtectedRoute() {
-  const { isAuthenticated } = useAuth()
+function ProtectedRoute({ hostOnly = false }) {
+  const { isAuthenticated, user } = useAuth()
   const location = useLocation()
+  const canAccess = isAuthenticated && (!hostOnly || user?.role === 'host' || user?.role === 'admin')
 
-  return isAuthenticated
+  return canAccess
     ? <Outlet />
     : <Navigate to="/login" replace state={{ from: location.pathname }} />
 }
@@ -24,10 +25,13 @@ export default function App() {
       <Route path="/"                 element={<Home />} />
       <Route path="/search"           element={<SearchResults />} />
       <Route path="/listing/:id"      element={<ListingDetail />} />
-      <Route path="/login"            element={<Login />} />
-      <Route path="/register"         element={<Register />} />
-      <Route element={<ProtectedRoute />}>
+      <Route path="/login"            element={<Login role="guest" />} />
+      <Route path="/register"         element={<Register role="guest" />} />
+      <Route path="/admin/login"      element={<Login role="host" />} />
+      <Route path="/admin/register"   element={<Register role="host" />} />
+      <Route element={<ProtectedRoute hostOnly />}>
         <Route path="/dashboard"      element={<Dashboard />} />
+        <Route path="/hosting"        element={<Dashboard />} />
         <Route path="/create-listing" element={<CreateListing />} />
       </Route>
       {/* Catch-all 404 */}

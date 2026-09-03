@@ -7,12 +7,15 @@ import { useAuth } from '../context/useAuth.js'
 
 export default function Navbar({ dark = false, showSearch = true }) {
   const { isDark, toggle } = useTheme()
-  const { isAuthenticated, logout } = useAuth()
+  const { isAuthenticated, user, logout } = useAuth()
   const [menuOpen, setMenuOpen] = useState(false)
 
-  const navLinks = isAuthenticated
-    ? [{ to: '/dashboard', label: 'Dashboard' }, { to: '/create-listing', label: 'Host' }]
-    : [{ to: '/login', label: 'Sign in' }, { to: '/register', label: 'Join' }]
+  const isHost = user?.role === 'host' || user?.role === 'admin'
+  const navLinks = isAuthenticated && isHost
+    ? [{ to: '/dashboard', label: 'Dashboard' }, { to: '/hosting', label: 'Hosting' }]
+    : isAuthenticated
+    ? [{ to: '/', label: 'Explore stays' }]
+    : [{ to: '/login', label: 'Guest sign in' }, { to: '/register', label: 'Guest sign up' }]
 
   return (
     <header

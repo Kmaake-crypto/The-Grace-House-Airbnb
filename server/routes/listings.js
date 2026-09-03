@@ -1,5 +1,11 @@
 import { Router } from 'express'
+import mongoose from 'mongoose'
 import Listing from '../models/Listing.js'
+import {
+  createFallbackListing,
+  deactivateFallbackListing,
+  getFallbackListings,
+} from '../fallbackStore.js'
 
 const router = Router()
 
@@ -9,6 +15,11 @@ router.get('/', async (req, res) => {
   try {
     const { location, type, minPrice, maxPrice, guests, search, limit = 50, page = 1 } = req.query
     const filter = { isActive: true }
+
+    if (mongoose.connection.readyState !== 1) {
+      const listings = getFallbackListings()
+      return res.json({ success: true, total: listings.length, page: Number(page), listings })
+    }
 
     if (location) filter.location = { $regex: location, $options: 'i' }
     if (type)     filter.type     = { $regex: type,     $options: 'i' }
@@ -48,6 +59,11 @@ router.get('/:id', async (req, res) => {
 // ── POST /api/listings ─────────────────────────────────────
 router.post('/', async (req, res) => {
   try {
+    if (mongoose.connection.readyState !== 1) {
+      const listing = createFallbackListing(req.body)
+      return res.status(201).json({ success: true, listing })
+    }
+
     const listing = new Listing(req.body)
     await listing.save()
     res.status(201).json({ success: true, listing })
@@ -74,6 +90,12 @@ router.put('/:id', async (req, res) => {
 // ── DELETE /api/listings/:id ───────────────────────────────
 router.delete('/:id', async (req, res) => {
   try {
+    if (mongoose.connection.readyState !== 1) {
+      const listing = deactivateFallbackListing(req.params.id)
+      if (!listing) return res.status(404).json({ success: false, message: 'Listing not found' })
+      return res.json({ success: true, message: 'Listing deactivated' })
+    }
+
     const listing = await Listing.findByIdAndUpdate(
       req.params.id,
       { isActive: false },

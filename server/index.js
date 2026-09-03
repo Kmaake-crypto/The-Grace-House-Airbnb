@@ -62,6 +62,7 @@ async function ensureSeedUser() {
 
     if (existing) {
       existing.name = existing.name || 'Koketso Maake'
+      existing.role = 'host'
       existing.isActive = true
       existing.setPassword(password)
       await existing.save()
@@ -72,7 +73,7 @@ async function ensureSeedUser() {
     const newUser = new User({
       name: 'Koketso Maake',
       email: normalizedEmail,
-      role: 'guest',
+      role: 'host',
       isActive: true,
     })
 

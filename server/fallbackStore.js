@@ -1,6 +1,8 @@
 import crypto from 'crypto'
 
 const fallbackUsers = new Map()
+const fallbackListings = new Map()
+const fallbackBookings = new Map()
 
 function hashPassword(value) {
   return crypto.createHash('sha256').update(value).digest('hex')
@@ -16,7 +18,7 @@ export function ensureFallbackSeedUser() {
       name: 'Koketso Maake',
       email: seedEmail.toLowerCase(),
       phone: '',
-      role: 'guest',
+      role: 'host',
       avatar: '',
       isSuperhost: false,
       hostSince: null,
@@ -71,4 +73,54 @@ export function verifyFallbackPassword(email, password) {
 
 export function getFallbackUsers() {
   return Array.from(fallbackUsers.values()).map((user) => ({ ...user }))
+}
+
+export function getFallbackListings() {
+  return Array.from(fallbackListings.values()).filter((listing) => listing.isActive)
+}
+
+export function createFallbackListing(data) {
+  const listing = {
+    ...data,
+    _id: `local-listing-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`,
+    isActive: true,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  }
+
+  fallbackListings.set(listing._id, listing)
+  return { ...listing }
+}
+
+export function deactivateFallbackListing(id) {
+  const listing = fallbackListings.get(id)
+  if (!listing) return null
+  listing.isActive = false
+  listing.updatedAt = new Date().toISOString()
+  return { ...listing }
+}
+
+export function getFallbackBookings() {
+  return Array.from(fallbackBookings.values()).sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+}
+
+export function createFallbackBooking(data) {
+  const booking = {
+    ...data,
+    _id: `local-booking-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`,
+    status: 'confirmed',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  }
+
+  fallbackBookings.set(booking._id, booking)
+  return { ...booking }
+}
+
+export function cancelFallbackBooking(id) {
+  const booking = fallbackBookings.get(id)
+  if (!booking) return null
+  booking.status = 'cancelled'
+  booking.updatedAt = new Date().toISOString()
+  return { ...booking }
 }

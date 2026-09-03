@@ -53,13 +53,15 @@ router.post('/register', async (req, res) => {
       return res.status(409).json({ success: false, message: 'Email already registered' })
     }
 
+    const accountRole = role === 'host' ? 'host' : 'guest'
+
     if (mongoose.connection.readyState !== 1) {
       const created = createFallbackUser({
         name,
         email: normalizedEmail,
         password,
         phone,
-        role: role || 'guest',
+        role: accountRole,
       })
 
       if (!created) {
@@ -75,7 +77,7 @@ router.post('/register', async (req, res) => {
       return res.status(409).json({ success: false, message: 'Email already registered' })
     }
 
-    const user = new User({ name, email: normalizedEmail, phone, role: role || 'guest' })
+    const user = new User({ name, email: normalizedEmail, phone, role: accountRole })
     user.setPassword(password)
     await user.save()
 
@@ -88,14 +90,19 @@ router.post('/register', async (req, res) => {
 // ── POST /api/users/login ──────────────────────────────────
 router.post('/login', async (req, res) => {
   try {
-    const { email, password } = req.body
+    const { email, password, role = 'guest' } = req.body
     if (!email || !password) {
       return res.status(400).json({ success: false, message: 'email and password are required' })
     }
 
     const normalizedEmail = email.toLowerCase()
     const fallbackUser = getFallbackUserByEmail(normalizedEmail)
-    if (fallbackUser && verifyFallbackPassword(normalizedEmail, password)) {
+    const isHostLogin = role === 'host'
+    const hasExpectedRole = (user) => isHostLogin
+      ? user.role === 'host' || user.role === 'admin'
+      : user.role === 'guest'
+
+    if (fallbackUser && verifyFallbackPassword(normalizedEmail, password) && hasExpectedRole(fallbackUser)) {
       const { passwordHash: _pw, ...safe } = fallbackUser
       return res.json({ success: true, user: safe, token: createToken({ _id: fallbackUser._id, role: fallbackUser.role }) })
     }
@@ -105,7 +112,7 @@ router.post('/login', async (req, res) => {
     }
 
     const user = await User.findOne({ email: normalizedEmail, isActive: true }).select('+passwordHash')
-    if (!user || !user.checkPassword(password)) {
+    if (!user || !user.checkPassword(password) || !hasExpectedRole(user)) {
       return res.status(401).json({ success: false, message: 'Invalid email or password' })
     }
 

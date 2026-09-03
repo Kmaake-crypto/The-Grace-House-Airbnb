@@ -4,6 +4,7 @@ import Footer from '../components/Footer.jsx'
 import Navbar from '../components/Navbar.jsx'
 import { reservations as staticReservations, listings as staticListings } from '../data/listings.js'
 import { bookingsApi, listingsApi } from '../services/api.js'
+import { useAuth } from '../context/useAuth.js'
 
 function zarFormat(amount) {
   return `R ${Number(amount).toLocaleString('en-ZA')}`
@@ -12,6 +13,7 @@ function zarFormat(amount) {
 const STAT_CARDS = []   // computed inside component from live data
 
 export default function Dashboard() {
+  const { user } = useAuth()
   const [tab, setTab] = useState('reservations')
 
   // ── Bookings from MongoDB ──────────────────────────────
@@ -85,10 +87,10 @@ export default function Dashboard() {
             </p>
           </div>
           <div className="flex items-center gap-3">
-            <span className="text-sm font-medium" style={{ color: 'var(--text-muted)' }}>John Doe</span>
+            <span className="text-sm font-medium" style={{ color: 'var(--text-muted)' }}>{user?.name || 'Host'}</span>
             <span className="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-sm"
               style={{ background: 'linear-gradient(135deg,#016764,#001E1E)' }}>
-              JD
+              {(user?.name || 'Host').split(' ').map((part) => part[0]).join('').slice(0, 2).toUpperCase()}
             </span>
           </div>
         </div>

@@ -20,6 +20,7 @@ async function main() {
 
     if (existing) {
       existing.name = existing.name || 'Koketso Maake'
+      existing.role = 'host'
       existing.isActive = true
       existing.setPassword(password)
       await existing.save()
@@ -28,7 +29,7 @@ async function main() {
       const user = new User({
         name: 'Koketso Maake',
         email: normalizedEmail,
-        role: 'guest',
+        role: 'host',
         isActive: true,
       })
       user.setPassword(password)

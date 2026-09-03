@@ -1,5 +1,11 @@
 import { Router } from 'express'
+import mongoose from 'mongoose'
 import Booking from '../models/Booking.js'
+import {
+  cancelFallbackBooking,
+  createFallbackBooking,
+  getFallbackBookings,
+} from '../fallbackStore.js'
 
 const router = Router()
 
@@ -9,6 +15,13 @@ router.get('/', async (req, res) => {
   try {
     const { status, guestEmail, listingId, limit = 50, page = 1 } = req.query
     const filter = {}
+
+    if (mongoose.connection.readyState !== 1) {
+      let bookings = getFallbackBookings()
+      if (status) bookings = bookings.filter((booking) => booking.status === status)
+      if (guestEmail) bookings = bookings.filter((booking) => booking.guestEmail === guestEmail.toLowerCase())
+      return res.json({ success: true, total: bookings.length, page: Number(page), bookings })
+    }
 
     if (status)     filter.status     = status
     if (guestEmail) filter.guestEmail = guestEmail.toLowerCase()
@@ -71,6 +84,26 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ success: false, message: 'Missing required booking fields' })
     }
 
+    if (mongoose.connection.readyState !== 1) {
+      const booking = createFallbackBooking({
+        listingTitle,
+        listingLocation,
+        listingImage,
+        guestName,
+        guestEmail: guestEmail.toLowerCase(),
+        guests,
+        checkin,
+        checkout,
+        nights,
+        nightlyRate,
+        subtotal,
+        cleaningFee,
+        serviceFee,
+        totalAmount,
+      })
+      return res.status(201).json({ success: true, booking })
+    }
+
     const booking = new Booking({
       listing:           listingId    || undefined,
       externalListingId: externalListingId || undefined,
@@ -122,6 +155,12 @@ router.patch('/:id/status', async (req, res) => {
 // ── DELETE /api/bookings/:id ───────────────────────────────
 router.delete('/:id', async (req, res) => {
   try {
+    if (mongoose.connection.readyState !== 1) {
+      const booking = cancelFallbackBooking(req.params.id)
+      if (!booking) return res.status(404).json({ success: false, message: 'Booking not found' })
+      return res.json({ success: true, message: 'Booking cancelled', booking })
+    }
+
     const booking = await Booking.findByIdAndUpdate(
       req.params.id,
       { status: 'cancelled' },

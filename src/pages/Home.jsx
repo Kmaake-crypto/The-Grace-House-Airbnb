@@ -7,12 +7,12 @@ import { inspirationHotels, listings } from '../data/listings.js'
 const heroImage = 'https://images.unsplash.com/photo-1697807646004-31ae73a1a625?q=80&w=870&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
 
 const SA_CITIES = [
-  { name: 'Cape Town',     region: 'Western Cape',  query: 'Cape Town, South Africa',     emoji: '🌊' },
-  { name: 'Johannesburg',  region: 'Gauteng',        query: 'Johannesburg, South Africa',  emoji: '🏙️' },
-  { name: 'Durban',        region: 'KwaZulu-Natal',  query: 'Durban, South Africa',        emoji: '🏖️' },
-  { name: 'Stellenbosch',  region: 'Winelands',      query: 'Stellenbosch, South Africa',  emoji: '🍷' },
-  { name: 'Knysna',        region: 'Garden Route',   query: 'Knysna, South Africa',        emoji: '🌿' },
-  { name: 'Kruger Park',   region: 'Limpopo',        query: 'Kruger Park, South Africa',   emoji: '🦁' },
+  { name: 'Cape Town',     region: 'Western Cape',  query: 'Cape Town, South Africa' },
+  { name: 'Johannesburg',  region: 'Gauteng',        query: 'Johannesburg, South Africa' },
+  { name: 'Durban',        region: 'KwaZulu-Natal',  query: 'Durban, South Africa' },
+  { name: 'Stellenbosch',  region: 'Winelands',      query: 'Stellenbosch, South Africa' },
+  { name: 'Knysna',        region: 'Garden Route',   query: 'Knysna, South Africa' },
+  { name: 'Kruger Park',   region: 'Limpopo',        query: 'Kruger Park, South Africa' },
 ]
 
 export default function Home() {
@@ -72,7 +72,6 @@ export default function Home() {
               onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#016764'; e.currentTarget.style.color = '#016764' }}
               onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--text-primary)' }}
             >
-              <span className="text-3xl">{city.emoji}</span>
               <span className="font-semibold text-sm">{city.name}</span>
               <span className="text-xs" style={{ color: 'var(--text-muted)' }}>{city.region}</span>
             </button>

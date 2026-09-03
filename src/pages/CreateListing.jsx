@@ -262,7 +262,7 @@ export default function CreateListing() {
 
             {/* ── Actions (full width) ── */}
             <div className="md:col-span-2 flex justify-end gap-3 pt-2">
-              <Link to="/dashboard"
+              <Link to="/hosting"
                 className="font-semibold rounded-lg px-6 py-2.5 text-sm transition-opacity hover:opacity-80"
                 style={{ background: 'var(--bg-surface)', color: 'var(--text-primary)', border: '1px solid var(--border)' }}>
                 Cancel

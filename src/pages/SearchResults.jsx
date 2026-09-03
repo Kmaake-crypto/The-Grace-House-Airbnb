@@ -240,7 +240,6 @@ export default function SearchResults() {
                   }}
                 >
                   <span>
-                    📍{' '}
                     {activeKeyword
                       ? SA_DESTINATIONS.find((d) => d.keyword === activeKeyword)?.label
                       : 'South Africa'}
@@ -301,7 +300,6 @@ export default function SearchResults() {
                             }
                           }}
                         >
-                          <span>{isActive ? '📌' : '📍'}</span>
                           <span className="font-medium">{dest.label}</span>
                           {isActive && (
                             <span className="ml-auto text-xs opacity-70">
@@ -338,7 +336,6 @@ export default function SearchResults() {
                         }
                       }}
                     >
-                      <span>🗺️</span>
                       <span className="font-medium">All South Africa</span>
                     </button>
                   </li>

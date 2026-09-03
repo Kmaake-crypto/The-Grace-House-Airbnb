@@ -60,7 +60,7 @@ export default function Navbar({ dark = false, showSearch = true }) {
               </button>
               {profileOpen && (
                 <div className="absolute right-0 top-11 z-50 w-44 rounded-xl p-2 shadow-xl" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
-                  <button onClick={() => { navigate(user?.role === 'guest' ? '/' : '/dashboard'); setProfileOpen(false) }} className="block w-full text-left rounded-lg px-3 py-2 text-sm hover:bg-black/5">View reservations</button>
+                  <button onClick={() => { navigate('/reservations'); setProfileOpen(false) }} className="block w-full text-left rounded-lg px-3 py-2 text-sm hover:bg-black/5">View reservations</button>
                   <button onClick={() => { logout(); setProfileOpen(false) }} className="block w-full text-left rounded-lg px-3 py-2 text-sm hover:bg-black/5">Log out</button>
                 </div>
               )}

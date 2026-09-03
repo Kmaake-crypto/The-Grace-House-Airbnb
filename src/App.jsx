@@ -7,6 +7,7 @@ import CreateListing from './pages/CreateListing.jsx'
 import NotFound from './pages/NotFound.jsx'
 import Login from './pages/Login.jsx'
 import Register from './pages/Register.jsx'
+import Reservations from './pages/Reservations.jsx'
 import { useAuth } from './context/useAuth.js'
 
 function ProtectedRoute({ hostOnly = false }) {
@@ -19,6 +20,11 @@ function ProtectedRoute({ hostOnly = false }) {
     : <Navigate to="/login" replace state={{ from: location.pathname }} />
 }
 
+function AuthenticatedRoute() {
+  const { isAuthenticated } = useAuth()
+  return isAuthenticated ? <Outlet /> : <Navigate to="/login" replace />
+}
+
 export default function App() {
   return (
     <Routes>
@@ -29,6 +35,9 @@ export default function App() {
       <Route path="/register"         element={<Register role="guest" />} />
       <Route path="/admin/login"      element={<Login role="host" />} />
       <Route path="/admin/register"   element={<Register role="host" />} />
+      <Route element={<AuthenticatedRoute />}>
+        <Route path="/reservations" element={<Reservations />} />
+      </Route>
       <Route element={<ProtectedRoute hostOnly />}>
         <Route path="/dashboard"      element={<Dashboard />} />
         <Route path="/hosting"        element={<Dashboard />} />

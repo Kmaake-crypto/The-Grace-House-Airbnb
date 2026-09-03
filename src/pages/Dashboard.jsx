@@ -12,6 +12,17 @@ function zarFormat(amount) {
 
 const STAT_CARDS = []   // computed inside component from live data
 
+function StatIcon({ type }) {
+  const paths = {
+    listings: <><path d="M3 10.5 12 3l9 7.5" /><path d="M5 9.5V21h14V9.5M9 21v-6h6v6" /></>,
+    reservations: <><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M16 3v4M8 3v4M3 10h18M8 14h.01M12 14h.01M16 14h.01M8 17h.01M12 17h.01" /></>,
+    revenue: <><path d="M12 2v20M17 6.5C16.2 5.5 14.8 5 13 5h-2a3 3 0 0 0 0 6h2a3 3 0 0 1 0 6h-2c-1.8 0-3.2-.5-4-1.5" /></>,
+    rating: <><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9L12 3Z" /></>,
+  }
+
+  return <svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{paths[type]}</svg>
+}
+
 export default function Dashboard() {
   const { user } = useAuth()
   const [tab, setTab] = useState('reservations')
@@ -54,12 +65,12 @@ export default function Dashboard() {
   }, [])
 
   const statCards = [
-    { label: 'Total Listings',      value: listings.length,  icon: '🏠' },
-    { label: 'Active Reservations', value: rows.length,      icon: '📅' },
-    { label: 'Monthly Revenue',     value: zarFormat(listings.reduce((s, l) => s + (l.price ?? 0) * 7, 0)), icon: '💰' },
+    { label: 'Total Listings',      value: listings.length,  icon: 'listings' },
+    { label: 'Active Reservations', value: rows.length,      icon: 'reservations' },
+    { label: 'Monthly Revenue',     value: zarFormat(listings.reduce((s, l) => s + (l.price ?? 0) * 7, 0)), icon: 'revenue' },
     { label: 'Avg. Rating',         value: listings.length
         ? (listings.reduce((s, l) => s + (l.rating ?? 0), 0) / listings.length).toFixed(2)
-        : '—', icon: '⭐' },
+      : '—', icon: 'rating' },
   ]
 
   async function handleDeleteBooking(idx) {
@@ -100,7 +111,7 @@ export default function Dashboard() {
           {statCards.map((s) => (
             <div key={s.label} className="rounded-xl p-5 flex flex-col gap-2"
               style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
-              <span className="text-2xl">{s.icon}</span>
+              <span style={{ color: '#016764' }}><StatIcon type={s.icon} /></span>
               <p className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>{s.value}</p>
               <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{s.label}</p>
             </div>
@@ -199,7 +210,7 @@ export default function Dashboard() {
                       <span className="font-normal text-xs" style={{ color: 'var(--text-muted)' }}>/night</span>
                     </p>
                     <span className="flex items-center gap-1 text-xs" style={{ color: 'var(--text-muted)' }}>
-                      ⭐ {l.rating.toFixed(1)}
+                      <StatIcon type="rating" /> {l.rating.toFixed(1)}
                     </span>
                   </div>
                   <div className="flex gap-2 mt-3">

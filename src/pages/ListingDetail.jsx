@@ -6,6 +6,8 @@ import BookingModal from '../components/BookingModal.jsx'
 import { useTaplineListing } from '../hooks/useTaplineListings.js'
 import { fetchPrice } from '../services/taplineApi.js'
 import { reviews } from '../data/listings.js'
+import { useAuth } from '../context/useAuth.js'
+import { usersApi } from '../services/api.js'
 
 function zarFormat(amount) {
   return `R ${Number(amount).toLocaleString('en-ZA')}`
@@ -14,6 +16,7 @@ function zarFormat(amount) {
 export default function ListingDetail() {
   const { id } = useParams()
   const { listing, loading: listingLoading } = useTaplineListing(id)
+  const { user, isAuthenticated } = useAuth()
 
   const today = new Date()
   const checkinDate = today.toISOString().split('T')[0]
@@ -22,6 +25,41 @@ export default function ListingDetail() {
   const [livePrice, setLivePrice] = useState(null)
   const [priceLoading, setPriceLoading] = useState(false)
   const [showBooking, setShowBooking] = useState(false)
+  const [saved, setSaved] = useState(() => user?.savedListings?.some((savedId) => String(savedId) === String(id)) || JSON.parse(localStorage.getItem('airbnb-saved-listings') || '[]').includes(String(id)))
+  const [descriptionExpanded, setDescriptionExpanded] = useState(false)
+  const [showAllAmenities, setShowAllAmenities] = useState(false)
+  const [showAllReviews, setShowAllReviews] = useState(false)
+  const [feedback, setFeedback] = useState('')
+
+  async function toggleSaved() {
+    if (!isAuthenticated) return setFeedback('Sign in as a guest to save this listing.')
+    if (String(id).startsWith('sa-')) {
+      const current = JSON.parse(localStorage.getItem('airbnb-saved-listings') || '[]')
+      const next = saved ? current.filter((savedId) => savedId !== String(id)) : [...new Set([...current, String(id)])]
+      localStorage.setItem('airbnb-saved-listings', JSON.stringify(next))
+      setSaved(!saved)
+      setFeedback(!saved ? 'Listing saved.' : 'Listing removed from saved stays.')
+      return
+    }
+    try {
+      const result = await usersApi.toggleSaveListing(user._id, id)
+      setSaved(result.saved)
+      setFeedback(result.saved ? 'Listing saved.' : 'Listing removed from saved stays.')
+    } catch (error) {
+      setFeedback(error.message)
+    }
+  }
+
+  async function shareListing() {
+    const url = window.location.href
+    try {
+      if (navigator.share) await navigator.share({ title: listing.title, url })
+      else await navigator.clipboard.writeText(url)
+      setFeedback(navigator.share ? 'Listing shared.' : 'Listing link copied.')
+    } catch {
+      setFeedback('Sharing was cancelled.')
+    }
+  }
 
   useEffect(() => {
     if (!listing || String(listing.id).startsWith('sa-')) return
@@ -76,10 +114,11 @@ export default function ListingDetail() {
             </p>
           </div>
           <div className="flex items-center gap-4 text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
-            <span className="underline cursor-pointer">Share</span>
-            <span className="underline cursor-pointer">Save</span>
+            <button onClick={shareListing} className="underline">Share</button>
+            <button onClick={toggleSaved} className="underline">{saved ? 'Saved' : 'Save'}</button>
           </div>
         </div>
+        {feedback && <p className="text-sm mt-3" style={{ color: '#016764' }}>{feedback}</p>}
 
         {/* Gallery */}
         <div className="grid grid-cols-4 grid-rows-2 gap-2 mt-4 rounded-xl overflow-hidden h-96">
@@ -126,8 +165,8 @@ export default function ListingDetail() {
 
             {/* Description */}
             <div className="py-6" style={{ borderBottom: '1px solid var(--border)' }}>
-              <p className="text-sm leading-relaxed" style={{ color: 'var(--text-primary)' }}>{listing.description}</p>
-              <button className="text-sm font-semibold underline mt-2" style={{ color: 'var(--text-link)' }}>Show more</button>
+              <p className={`text-sm leading-relaxed ${descriptionExpanded ? '' : 'line-clamp-3'}`} style={{ color: 'var(--text-primary)' }}>{listing.description}</p>
+              <button onClick={() => setDescriptionExpanded((expanded) => !expanded)} className="text-sm font-semibold underline mt-2" style={{ color: 'var(--text-link)' }}>{descriptionExpanded ? 'Show less' : 'Show more'}</button>
             </div>
 
             {/* Bedroom */}
@@ -145,7 +184,7 @@ export default function ListingDetail() {
               <div className="py-6" style={{ borderBottom: '1px solid var(--border)' }}>
                 <h3 className="font-semibold mb-4" style={{ color: 'var(--text-primary)' }}>What this place offers</h3>
                 <div className="grid grid-cols-2 gap-y-3 text-sm">
-                  {listing.amenities.map((a) => (
+                  {listing.amenities.slice(0, showAllAmenities ? undefined : 6).map((a) => (
                     <div key={a} className="flex items-center gap-3" style={{ color: 'var(--text-primary)' }}>
                       <span className="w-4 h-4 rounded-sm inline-block" style={{ border: '1px solid var(--text-muted)' }} />
                       {a}
@@ -153,10 +192,11 @@ export default function ListingDetail() {
                   ))}
                 </div>
                 <button
+                  onClick={() => setShowAllAmenities((expanded) => !expanded)}
                   className="rounded-lg px-4 py-2 text-sm font-semibold mt-4"
                   style={{ border: '1px solid var(--text-primary)', color: 'var(--text-primary)', background: 'transparent' }}
                 >
-                  Show all amenities
+                  {showAllAmenities ? 'Show fewer amenities' : 'Show all amenities'}
                 </button>
               </div>
             )}
@@ -186,7 +226,7 @@ export default function ListingDetail() {
                 ))}
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-6">
-                {reviews.map((r) => (
+                {reviews.slice(0, showAllReviews ? undefined : 4).map((r) => (
                   <div key={r.name}>
                     <div className="flex items-center gap-3 mb-2">
                       <span className="w-9 h-9 rounded-full inline-block" style={{ background: 'var(--bg-surface)' }} />
@@ -200,10 +240,11 @@ export default function ListingDetail() {
                 ))}
               </div>
               <button
+                onClick={() => setShowAllReviews((expanded) => !expanded)}
                 className="rounded-lg px-4 py-2 text-sm font-semibold mt-6"
                 style={{ border: '1px solid var(--text-primary)', color: 'var(--text-primary)', background: 'transparent' }}
               >
-                Show all {listing.reviews} reviews
+                {showAllReviews ? 'Show fewer reviews' : `Show all ${listing.reviews} reviews`}
               </button>
             </div>
           </div>
@@ -281,9 +322,9 @@ export default function ListingDetail() {
                 <span>{zarFormat(total)}</span>
               </div>
 
-              <p className="text-center text-xs underline mt-4 cursor-pointer" style={{ color: 'var(--text-muted)' }}>
+              <button onClick={() => setFeedback('Thanks. This listing has been reported for review.')} className="block w-full text-center text-xs underline mt-4" style={{ color: 'var(--text-muted)' }}>
                 Report this listing
-              </p>
+              </button>
             </div>
           </div>
         </div>

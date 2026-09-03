@@ -272,11 +272,13 @@ export default function Dashboard() {
                       style={{ background: 'var(--bg-surface)', color: 'var(--text-primary)', border: '1px solid var(--border)' }}>
                       View listing
                     </Link>
-                    <button onClick={() => String(l.id || l._id).startsWith('sa-') ? navigate(`/listing/${l.id || l._id}`) : handleEditListing(l)}
-                      className="flex-1 text-center text-xs font-semibold rounded-md py-1.5 text-white transition-opacity hover:opacity-80"
-                      style={{ background: 'linear-gradient(135deg,#016764,#001E1E)' }}>
-                      {String(l.id || l._id).startsWith('sa-') ? 'View listing' : l.isFromApi ? 'Import & edit' : 'Edit listing'}
-                    </button>
+                    {!String(l.id || l._id).startsWith('sa-') && (
+                      <button onClick={() => handleEditListing(l)}
+                        className="flex-1 text-center text-xs font-semibold rounded-md py-1.5 text-white transition-opacity hover:opacity-80"
+                        style={{ background: 'linear-gradient(135deg,#016764,#001E1E)' }}>
+                        {l.isFromApi ? 'Import & edit' : 'Edit listing'}
+                      </button>
+                    )}
                     {!String(l.id || l._id).startsWith('sa-') && !l.isFromApi && (
                       <button onClick={() => handleDeleteListing(l.id || l._id)}
                         className="flex-1 text-xs font-semibold rounded-md py-1.5 transition-opacity hover:opacity-80"

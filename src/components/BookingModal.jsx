@@ -1,5 +1,7 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { bookingsApi } from '../services/api.js'
+import { useAuth } from '../context/useAuth.js'
 
 function zarFormat(n) {
   return `R ${Number(n).toLocaleString('en-ZA')}`
@@ -24,21 +26,24 @@ const today = new Date().toISOString().split('T')[0]
  *   onClose   — called to dismiss the modal
  */
 export default function BookingModal({ listing, onClose }) {
+  const { user, isAuthenticated } = useAuth()
   const [step, setStep] = useState('form') // 'form' | 'confirm' | 'done'
   const [checkin, setCheckin]   = useState(today)
   const [checkout, setCheckout] = useState(addDays(today, 7))
   const [guests, setGuests]     = useState(1)
-  const [guestName,  setGuestName]  = useState('')
-  const [guestEmail, setGuestEmail] = useState('')
+  const [guestName,  setGuestName]  = useState(user?.name || '')
+  const [guestEmail, setGuestEmail] = useState(user?.email || '')
   const [saving, setSaving]         = useState(false)
   const [confirmRef, setConfirmRef] = useState(null)
 
   const nights       = diffDays(checkin, checkout)
   const nightlyRate  = listing.price ?? 0
   const subtotal     = nightlyRate * nights
-  const cleaningFee  = Math.round(nightlyRate * 0.15)
-  const serviceFee   = Math.round(subtotal * 0.12)
-  const total        = subtotal + cleaningFee + serviceFee
+  const weeklyDiscount = nights >= 7 ? Math.round(subtotal * (listing.weeklyDiscount ?? 0) / 100) : 0
+  const cleaningFee  = listing.cleaningFee || Math.round(nightlyRate * 0.15)
+  const serviceFee   = listing.serviceFee || Math.round(subtotal * 0.12)
+  const occupancyFee = listing.occupancyTax || Math.round(subtotal * 0.03)
+  const total        = subtotal - weeklyDiscount + cleaningFee + serviceFee + occupancyFee
 
   function handleCheckinChange(val) {
     setCheckin(val)
@@ -163,8 +168,10 @@ export default function BookingModal({ listing, onClose }) {
               </p>
               {[
                 [`${listing.priceFormatted ?? zarFormat(nightlyRate)} × ${nights} nights`, zarFormat(subtotal)],
+                ...(weeklyDiscount ? [['Weekly discount', `- ${zarFormat(weeklyDiscount)}`]] : []),
                 ['Cleaning fee (15%)', zarFormat(cleaningFee)],
                 ['Service fee (12%)', zarFormat(serviceFee)],
+                ['Occupancy taxes and fees', zarFormat(occupancyFee)],
               ].map(([l, v]) => (
                 <div key={l} className="flex justify-between" style={{ color: 'var(--text-primary)' }}>
                   <span style={{ color: 'var(--text-muted)' }}>{l}</span>
@@ -182,10 +189,20 @@ export default function BookingModal({ listing, onClose }) {
               🇿🇦 All prices in South African Rand (ZAR) · You won&apos;t be charged yet
             </p>
 
+            {!isAuthenticated && (
+              <p className="text-sm text-center" style={{ color: 'var(--text-muted)' }}>
+                <Link to="/login" state={{ from: window.location.pathname }} className="font-semibold underline" style={{ color: '#016764' }}>
+                  Sign in as a guest
+                </Link>{' '}
+                to reserve this stay.
+              </p>
+            )}
+
             <button
               onClick={() => setStep('confirm')}
+              disabled={!isAuthenticated}
               className="w-full font-semibold rounded-xl py-3 text-white transition-opacity hover:opacity-90"
-              style={{ background: 'linear-gradient(135deg,#016764,#001E1E)' }}>
+              style={{ background: 'linear-gradient(135deg,#016764,#001E1E)', opacity: isAuthenticated ? 1 : 0.5 }}>
               Continue to Confirm
             </button>
           </div>

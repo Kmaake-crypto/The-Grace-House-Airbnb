@@ -42,6 +42,7 @@ const bookingSchema = new mongoose.Schema(
 
     // Optional: link to registered user
     user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    hostUser: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
 
     // Confirmation reference number
     confirmationRef: { type: String, unique: true },

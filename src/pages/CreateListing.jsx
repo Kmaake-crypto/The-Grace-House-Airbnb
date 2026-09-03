@@ -1,5 +1,5 @@
-import { useState, useRef } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useState, useRef, useEffect } from 'react'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import Navbar from '../components/Navbar.jsx'
 import { listingsApi } from '../services/api.js'
 
@@ -12,17 +12,35 @@ const PROPERTY_TYPES = ['Entire home', 'Entire apartment', 'Private room', 'Shar
 
 export default function CreateListing() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const listingId = searchParams.get('id')
   const fileRef = useRef(null)
 
   const [form, setForm] = useState({
     name: '', location: '', description: '',
     rooms: '', baths: '', guests: '', price: '',
+    weeklyDiscount: '', cleaningFee: '', serviceFee: '', occupancyTax: '',
     type: '', amenities: [],
   })
   const [imagePreview, setImagePreview] = useState(null)
   const [errors, setErrors] = useState({})
   const [saving, setSaving] = useState(false)
   const [apiError, setApiError] = useState(null)
+
+  useEffect(() => {
+    if (!listingId) return
+    listingsApi.getById(listingId)
+      .then(({ listing }) => {
+        setForm({
+          name: listing.title || '', location: listing.location || '', description: listing.description || '',
+          rooms: listing.beds || '', baths: listing.baths || '', guests: listing.guests || '', price: listing.price || '',
+          weeklyDiscount: listing.weeklyDiscount || '', cleaningFee: listing.cleaningFee || '', serviceFee: listing.serviceFee || '', occupancyTax: listing.occupancyTax || '',
+          type: listing.type || '', amenities: listing.amenities || [],
+        })
+        setImagePreview(listing.image || null)
+      })
+      .catch((err) => setApiError(err.message))
+  }, [listingId])
 
   function update(field, value) {
     setForm((f) => ({ ...f, [field]: value }))
@@ -64,7 +82,7 @@ export default function CreateListing() {
     setApiError(null)
 
     try {
-      await listingsApi.create({
+      const listingData = {
         title:       form.name,
         location:    form.location,
         description: form.description,
@@ -73,11 +91,17 @@ export default function CreateListing() {
         baths:       Number(form.baths) || 1,
         guests:      Number(form.guests) || 2,
         price:       Number(form.price),
+        weeklyDiscount: Number(form.weeklyDiscount) || 0,
+        cleaningFee: Number(form.cleaningFee) || 0,
+        serviceFee: Number(form.serviceFee) || 0,
+        occupancyTax: Number(form.occupancyTax) || 0,
         amenities:   form.amenities,
         image:       imagePreview || '',
         gallery:     imagePreview ? [imagePreview] : [],
         currency:    'ZAR',
-      })
+      }
+      if (listingId) await listingsApi.update(listingId, listingData)
+      else await listingsApi.create(listingData)
       navigate('/dashboard')
     } catch (err) {
       setApiError(err.message)
@@ -118,7 +142,7 @@ export default function CreateListing() {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-2xl font-semibold" style={{ color: 'var(--text-primary)' }}>
-            Create a New Listing
+            {listingId ? 'Edit Listing' : 'Create a New Listing'}
           </h1>
           <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>
             List your South African property and start earning in ZAR
@@ -206,6 +230,21 @@ export default function CreateListing() {
                 {errors.price && <p style={errorStyle}>{errors.price}</p>}
               </div>
 
+              <div className="grid grid-cols-2 gap-3">
+                {[
+                  ['weeklyDiscount', 'Weekly Discount (%)', '10'],
+                  ['cleaningFee', 'Cleaning Fee (ZAR)', '250'],
+                  ['serviceFee', 'Service Fee (ZAR)', '150'],
+                  ['occupancyTax', 'Occupancy Tax (ZAR)', '100'],
+                ].map(([field, label, placeholder]) => (
+                  <div key={field}>
+                    <label style={labelStyle}>{label}</label>
+                    <input style={inputStyle} type="number" min="0" max={field === 'weeklyDiscount' ? '100' : undefined}
+                      value={form[field]} onChange={(e) => update(field, e.target.value)} placeholder={placeholder} />
+                  </div>
+                ))}
+              </div>
+
               {/* Image upload */}
               <div>
                 <label style={labelStyle}>Property Photo</label>
@@ -271,7 +310,7 @@ export default function CreateListing() {
                 disabled={saving}
                 className="font-semibold rounded-lg px-8 py-2.5 text-sm text-white transition-opacity hover:opacity-90 disabled:opacity-50"
                 style={{ background: 'linear-gradient(135deg, #016764 0%, #001E1E 100%)' }}>
-                {saving ? 'Saving…' : 'Create Listing'}
+                {saving ? 'Saving…' : listingId ? 'Save Changes' : 'Create Listing'}
               </button>
             </div>
 

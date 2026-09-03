@@ -75,8 +75,22 @@ export function getFallbackUsers() {
   return Array.from(fallbackUsers.values()).map((user) => ({ ...user }))
 }
 
-export function getFallbackListings() {
-  return Array.from(fallbackListings.values()).filter((listing) => listing.isActive)
+export function getFallbackListings(ownerId = null) {
+  return Array.from(fallbackListings.values()).filter((listing) =>
+    listing.isActive && (!ownerId || String(listing.owner) === String(ownerId))
+  )
+}
+
+export function getFallbackListingById(id) {
+  const listing = fallbackListings.get(String(id))
+  return listing?.isActive ? { ...listing } : null
+}
+
+export function updateFallbackListing(id, ownerId, data) {
+  const listing = fallbackListings.get(String(id))
+  if (!listing || !listing.isActive || String(listing.owner) !== String(ownerId)) return null
+  Object.assign(listing, data, { owner: listing.owner, updatedAt: new Date().toISOString() })
+  return { ...listing }
 }
 
 export function createFallbackListing(data) {
@@ -117,10 +131,27 @@ export function createFallbackBooking(data) {
   return { ...booking }
 }
 
+export function getFallbackBookingsForUser(userId, role) {
+  return getFallbackBookings().filter((booking) =>
+    role === 'host'
+      ? String(booking.hostUser) === String(userId)
+      : String(booking.user) === String(userId)
+  )
+}
+
 export function cancelFallbackBooking(id) {
   const booking = fallbackBookings.get(id)
   if (!booking) return null
   booking.status = 'cancelled'
   booking.updatedAt = new Date().toISOString()
   return { ...booking }
+}
+
+export function updateFallbackBookingStatus(id, userId, role, status) {
+  const booking = getFallbackBookingsForUser(userId, role).find((item) => String(item._id) === String(id))
+  if (!booking) return null
+  const stored = fallbackBookings.get(String(id))
+  stored.status = status
+  stored.updatedAt = new Date().toISOString()
+  return { ...stored }
 }

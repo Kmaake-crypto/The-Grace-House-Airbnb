@@ -10,6 +10,7 @@ import User from './models/User.js'
 import listingRoutes from './routes/listings.js'
 import bookingRoutes from './routes/bookings.js'
 import userRoutes   from './routes/users.js'
+import taplineRoutes from './routes/tapline.js'
 
 // Load server/.env regardless of where node is invoked from
 const __dirname = dirname(fileURLToPath(import.meta.url))
@@ -36,6 +37,7 @@ app.get('/api/health', (_req, res) => {
 app.use('/api/listings', listingRoutes)
 app.use('/api/bookings', bookingRoutes)
 app.use('/api/users',    userRoutes)
+app.use('/api/tapline',  taplineRoutes)
 
 // ── Global error handler ──────────────────────────────────
 app.use((err, _req, res, _next) => {

@@ -4,12 +4,38 @@ This template provides a minimal setup to get React working in Vite with HMR and
 
 Currently, two official plugins are available:
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
 
 ## React Compiler
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+# Grace House Airbnb Clone
+
+React/Vite frontend with an Express/Mongoose API for South African stays.
+
+## Run locally
+
+```bash
+npm install
+npm run dev:all
+```
+
+The frontend runs at `http://localhost:5173` and the API at `http://localhost:5000`.
+Copy the required values into `server/.env`. `MONGO_URI` is optional during local development; the API uses an in-memory fallback store when MongoDB is unavailable. `TAPLINE_API_KEY` is kept server-side and is never sent to the browser.
+
+## Accounts
+
+- Guests sign up and sign in at `/register` and `/login`.
+- Hosts sign up and sign in at `/admin/register` and `/admin/login`.
+- The seeded host account is configured by the server seed scripts.
+
+Host listing mutations and reservations are protected with JWT middleware. Listings are scoped to their owner, and bookings are associated with the authenticated guest and host.
+
+## Useful commands
+
+```bash
+npm run build
+npm run lint
+npm run db:seed:user
+```
 
 ## Expanding the ESLint configuration
 

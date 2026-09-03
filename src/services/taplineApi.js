@@ -6,15 +6,17 @@
  * API key is sent as a Bearer token in the Authorization header.
  */
 
-const TAPLINE_BASE_URL = 'https://tapline.sh'
-const API_KEY = 'sk_-As-KoRBBK24anaxn9e_gQibe5nNSzNEs8xzQdo7z6o'
+const TAPLINE_BASE_URL = '/api/tapline'
 const CURRENCY = 'ZAR'
 
-function authHeaders() {
-  return {
-    Authorization: `Bearer ${API_KEY}`,
-    'Content-Type': 'application/json',
-  }
+async function taplineRequest(path, body) {
+  const res = await fetch(`${TAPLINE_BASE_URL}${path}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  })
+  if (!res.ok) throw new Error(`Tapline request error ${res.status}: ${await res.text()}`)
+  return res.json()
 }
 
 /**
@@ -32,18 +34,7 @@ export async function searchListings(location = 'South Africa', options = {}) {
     ...(options.guests && { guests: options.guests }),
   }
 
-  const res = await fetch(`${TAPLINE_BASE_URL}/v1/airbnb/search`, {
-    method: 'POST',
-    headers: authHeaders(),
-    body: JSON.stringify(body),
-  })
-
-  if (!res.ok) {
-    const err = await res.text()
-    throw new Error(`Tapline search error ${res.status}: ${err}`)
-  }
-
-  return res.json()
+  return taplineRequest('/search', body)
 }
 
 /**
@@ -52,18 +43,7 @@ export async function searchListings(location = 'South Africa', options = {}) {
  * @returns {Promise<object>}
  */
 export async function getListingDetails(roomId) {
-  const res = await fetch(`${TAPLINE_BASE_URL}/v1/airbnb/details`, {
-    method: 'POST',
-    headers: authHeaders(),
-    body: JSON.stringify({ room_id: String(roomId), currency: CURRENCY }),
-  })
-
-  if (!res.ok) {
-    const err = await res.text()
-    throw new Error(`Tapline details error ${res.status}: ${err}`)
-  }
-
-  return res.json()
+  return taplineRequest('/details', { room_id: String(roomId), currency: CURRENCY })
 }
 
 /**
@@ -75,24 +55,7 @@ export async function getListingDetails(roomId) {
  * @returns {Promise<object>}
  */
 export async function fetchPrice(roomId, checkin, checkout, guests = 2) {
-  const res = await fetch(`${TAPLINE_BASE_URL}/v1/airbnb/priceFetch`, {
-    method: 'POST',
-    headers: authHeaders(),
-    body: JSON.stringify({
-      room_id: String(roomId),
-      checkin,
-      checkout,
-      guests,
-      currency: CURRENCY,
-    }),
-  })
-
-  if (!res.ok) {
-    const err = await res.text()
-    throw new Error(`Tapline price error ${res.status}: ${err}`)
-  }
-
-  return res.json()
+  return taplineRequest('/price', { room_id: String(roomId), checkin, checkout, guests, currency: CURRENCY })
 }
 
 /**
@@ -114,6 +77,10 @@ export function normaliseListing(raw) {
     beds: raw.beds ?? 1,
     baths: raw.baths ?? 1,
     price: priceAmount,
+    weeklyDiscount: raw.weekly_discount ?? 0,
+    cleaningFee: raw.cleaning_fee?.amount ?? 0,
+    serviceFee: raw.service_fee?.amount ?? 0,
+    occupancyTax: raw.occupancy_tax?.amount ?? 0,
     priceFormatted,
     currency: CURRENCY,
     rating: parseFloat(raw.rating_average ?? raw.rating ?? 0),

@@ -26,7 +26,7 @@ export function useTaplineListings(location = 'South Africa', options = {}) {
       const raw = data.listings ?? data.results ?? data.items ?? []
 
       if (Array.isArray(raw) && raw.length > 0) {
-        setListings(raw.map(normaliseListing))
+        setListings([...raw.map(normaliseListing), ...fallbackListings])
       } else {
         // API succeeded but returned empty — keep fallback
         setListings(fallbackListings)

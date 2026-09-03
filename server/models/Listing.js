@@ -10,6 +10,10 @@ const listingSchema = new mongoose.Schema(
     beds:           { type: Number, default: 1, min: 1 },
     baths:          { type: Number, default: 1, min: 1 },
     price:          { type: Number, required: true, min: 0 },
+    weeklyDiscount: { type: Number, default: 0, min: 0, max: 100 },
+    cleaningFee:    { type: Number, default: 0, min: 0 },
+    serviceFee:     { type: Number, default: 0, min: 0 },
+    occupancyTax:   { type: Number, default: 0, min: 0 },
     priceFormatted: { type: String },                        // e.g. "R 2,500"
     currency:       { type: String, default: 'ZAR' },
     rating:         { type: Number, default: 0, min: 0, max: 5 },

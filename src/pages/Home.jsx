@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Navbar from '../components/Navbar.jsx'
 import Footer from '../components/Footer.jsx'
@@ -17,8 +18,14 @@ const SA_CITIES = [
 
 export default function Home() {
   const navigate = useNavigate()
+  const [getawayTab, setGetawayTab] = useState('coast')
   const goTo = (query) => navigate(`/search?location=${encodeURIComponent(query)}`)
   const featuredListings = listings.slice(0, 4)
+  const getaways = {
+    coast: ['Cape Town', 'Durban', 'Knysna', 'Port Elizabeth'],
+    city: ['Johannesburg', 'Pretoria', 'Cape Town', 'Durban'],
+    nature: ['Kruger Park', 'Stellenbosch', 'Knysna', 'Drakensberg'],
+  }
 
   return (
     <div className="transition-colors duration-300" style={{ background: 'var(--bg-page)', color: 'var(--text-primary)' }}>
@@ -119,6 +126,42 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Future getaways */}
+      <section className="max-w-7xl mx-auto px-6 py-8">
+        <h2 className="text-2xl font-semibold mb-4" style={{ color: 'var(--text-primary)' }}>
+          Inspiration for future getaways
+        </h2>
+        <div className="flex flex-wrap gap-2 mb-5" role="tablist" aria-label="Future getaway categories">
+          {[['coast', 'Coastal escapes'], ['city', 'City breaks'], ['nature', 'Nature retreats']].map(([key, label]) => (
+            <button
+              key={key}
+              role="tab"
+              aria-selected={getawayTab === key}
+              onClick={() => setGetawayTab(key)}
+              className="rounded-full px-4 py-2 text-sm font-semibold"
+              style={getawayTab === key
+                ? { background: '#016764', color: '#fff' }
+                : { background: 'var(--bg-surface)', color: 'var(--text-primary)', border: '1px solid var(--border)' }}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3" role="tabpanel">
+          {getaways[getawayTab].map((destination) => (
+            <button
+              key={destination}
+              onClick={() => goTo(`${destination}, South Africa`)}
+              className="text-left rounded-xl p-4 transition-shadow hover:shadow-md"
+              style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}
+            >
+              <p className="font-semibold" style={{ color: 'var(--text-primary)' }}>{destination}</p>
+              <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>Explore stays in South Africa</p>
+            </button>
+          ))}
+        </div>
+      </section>
+
       {/* Experiences */}
       <section className="max-w-7xl mx-auto px-6 py-8">
         <h2 className="text-2xl font-semibold mb-6" style={{ color: 'var(--text-primary)' }}>
@@ -153,9 +196,11 @@ export default function Home() {
           </button>
         </div>
         <div className="flex-1 flex justify-center">
-          <div className="w-40 h-24 rounded-lg bg-gradient-to-br from-sky-300 to-indigo-500 -rotate-6 shadow-lg" />
-          <div className="w-40 h-24 rounded-lg bg-brand -ml-10 shadow-lg" />
-          <div className="w-40 h-24 rounded-lg bg-gradient-to-br from-purple-400 to-pink-400 rotate-6 -ml-10 shadow-lg" />
+          <img
+            src="https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=900&q=80"
+            alt="Gift cards on a desk"
+            className="w-full max-w-sm h-40 object-cover rounded-xl shadow-lg"
+          />
         </div>
       </section>
 

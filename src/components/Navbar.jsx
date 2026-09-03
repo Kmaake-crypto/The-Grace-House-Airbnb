@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import SearchBar from './SearchBar.jsx'
 import logo from '../assets/airbnb.png'
 import { useTheme } from '../context/ThemeContext.jsx'
@@ -8,14 +8,16 @@ import { useAuth } from '../context/useAuth.js'
 export default function Navbar({ dark = false, showSearch = true }) {
   const { isDark, toggle } = useTheme()
   const { isAuthenticated, user, logout } = useAuth()
+  const navigate = useNavigate()
   const [menuOpen, setMenuOpen] = useState(false)
+  const [profileOpen, setProfileOpen] = useState(false)
 
   const isHost = user?.role === 'host' || user?.role === 'admin'
   const navLinks = isAuthenticated && isHost
     ? [{ to: '/dashboard', label: 'Dashboard' }, { to: '/hosting', label: 'Hosting' }]
     : isAuthenticated
     ? [{ to: '/', label: 'Explore stays' }]
-    : [{ to: '/login', label: 'Guest sign in' }, { to: '/register', label: 'Guest sign up' }]
+    : [{ to: '/login', label: 'Guest sign in' }, { to: '/register', label: 'Guest sign up' }, { to: '/admin/register', label: 'Become a host' }]
 
   return (
     <header
@@ -48,7 +50,22 @@ export default function Navbar({ dark = false, showSearch = true }) {
           {navLinks.map(({ to, label }) => (
             <Link key={to} to={to} className="hover:underline">{label}</Link>
           ))}
-          {isAuthenticated && <button onClick={logout} className="hover:underline">Log out</button>}
+          {isAuthenticated && (
+            <div className="relative">
+              <button onClick={() => setProfileOpen((open) => !open)} className="flex items-center gap-2 hover:underline" aria-expanded={profileOpen}>
+                <span className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs" style={{ background: '#016764' }}>
+                  {(user?.name || 'User').split(' ').map((part) => part[0]).join('').slice(0, 2).toUpperCase()}
+                </span>
+                <span>{user?.name || 'Profile'}</span>
+              </button>
+              {profileOpen && (
+                <div className="absolute right-0 top-11 z-50 w-44 rounded-xl p-2 shadow-xl" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+                  <button onClick={() => { navigate(user?.role === 'guest' ? '/' : '/dashboard'); setProfileOpen(false) }} className="block w-full text-left rounded-lg px-3 py-2 text-sm hover:bg-black/5">View reservations</button>
+                  <button onClick={() => { logout(); setProfileOpen(false) }} className="block w-full text-left rounded-lg px-3 py-2 text-sm hover:bg-black/5">Log out</button>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Dark / Light toggle */}
           <button

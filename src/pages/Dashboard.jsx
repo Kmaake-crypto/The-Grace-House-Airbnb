@@ -44,12 +44,12 @@ export default function Dashboard() {
       .finally(() => setBLoading(false))
 
     // Fetch listings
-    listingsApi.getAll()
+    listingsApi.getAll({ mine: 'true' })
       .then((data) => {
-        if (data.listings?.length) setListings(data.listings)
-        // else keep staticListings
+        if (data.listings?.length) setListings([...data.listings, ...staticListings])
+        else setListings(staticListings)
       })
-      .catch(() => {})
+      .catch(() => setListings(staticListings))
       .finally(() => setLLoading(false))
   }, [])
 
@@ -171,7 +171,15 @@ export default function Dashboard() {
 
         {/* Listings grid */}
         {tab === 'listings' && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div>
+            {listingsLoading && <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Loading your listings...</p>}
+            {!listingsLoading && listings.length === 0 && (
+              <div className="rounded-xl p-8 text-center" style={{ border: '1px solid var(--border)', background: 'var(--bg-card)' }}>
+                <p className="font-semibold" style={{ color: 'var(--text-primary)' }}>You have no listings yet.</p>
+                <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>Create your first South African stay to start hosting.</p>
+              </div>
+            )}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {listings.map((l) => (
               <div key={l.id} className="rounded-xl overflow-hidden"
                 style={{ border: '1px solid var(--border)', background: 'var(--bg-card)' }}>
@@ -200,15 +208,16 @@ export default function Dashboard() {
                       style={{ background: 'var(--bg-surface)', color: 'var(--text-primary)', border: '1px solid var(--border)' }}>
                       View
                     </Link>
-                    <Link to="/create-listing"
+                    <Link to={String(l.id).startsWith('sa-') ? `/listing/${l.id}` : `/create-listing?id=${encodeURIComponent(l.id)}`}
                       className="flex-1 text-center text-xs font-semibold rounded-md py-1.5 text-white transition-opacity hover:opacity-80"
                       style={{ background: 'linear-gradient(135deg,#016764,#001E1E)' }}>
-                      Edit
+                      {String(l.id).startsWith('sa-') ? 'View' : 'Edit'}
                     </Link>
                   </div>
                 </div>
               </div>
             ))}
+            </div>
           </div>
         )}
       </div>

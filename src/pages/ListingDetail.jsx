@@ -47,10 +47,11 @@ export default function ListingDetail() {
   const nightlyFormatted = livePrice?.breakdown?.[0]?.unit_price?.formatted ?? listing.priceFormatted ?? zarFormat(listing.price)
   const subtotal = livePrice?.breakdown?.[0]?.total?.amount ?? nightlyRate * nights
   const subtotalFormatted = livePrice?.breakdown?.[0]?.total?.formatted ?? zarFormat(subtotal)
-  const cleaningFee = Math.round(nightlyRate * 0.15)
-  const serviceFee  = Math.round(subtotal * 0.12)
-  const occupancyFee = Math.round(subtotal * 0.03)
-  const total = subtotal + cleaningFee + serviceFee + occupancyFee
+  const weeklyDiscount = nights >= 7 ? Math.round(subtotal * (listing.weeklyDiscount ?? 0) / 100) : 0
+  const cleaningFee = listing.cleaningFee || Math.round(nightlyRate * 0.15)
+  const serviceFee  = listing.serviceFee || Math.round(subtotal * 0.12)
+  const occupancyFee = listing.occupancyTax || Math.round(subtotal * 0.03)
+  const total = subtotal - weeklyDiscount + cleaningFee + serviceFee + occupancyFee
 
   return (
     <div className="transition-colors duration-300" style={{ background: 'var(--bg-page)', color: 'var(--text-primary)' }}>
@@ -263,6 +264,7 @@ export default function ListingDetail() {
               <div className="mt-5 space-y-2 text-sm">
                 {[
                   [`${nightlyFormatted} × ${nights} nights`, subtotalFormatted],
+                  ...(weeklyDiscount ? [['Weekly discount', `- ${zarFormat(weeklyDiscount)}`]] : []),
                   ['Cleaning fee', zarFormat(cleaningFee)],
                   ['Service fee', zarFormat(serviceFee)],
                   ['Occupancy taxes and fees', zarFormat(occupancyFee)],

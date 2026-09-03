@@ -7,12 +7,13 @@ import {
   getFallbackUserByEmail,
   verifyFallbackPassword,
 } from '../fallbackStore.js'
+import { requireAuth } from '../middleware/auth.js'
 
 const router = Router()
 
 function createToken(user) {
   return jwt.sign(
-    { sub: user._id.toString(), role: user.role },
+    { sub: user._id.toString(), role: user.role, name: user.name },
     process.env.JWT_SECRET || 'development-secret-change-me',
     { expiresIn: '7d' },
   )
@@ -124,8 +125,11 @@ router.post('/login', async (req, res) => {
 })
 
 // ── PUT /api/users/:id ─────────────────────────────────────
-router.put('/:id', async (req, res) => {
+router.put('/:id', requireAuth, async (req, res) => {
   try {
+    if (String(req.user.sub) !== String(req.params.id)) {
+      return res.status(403).json({ success: false, message: 'You can only update your own profile' })
+    }
     // Don't allow password changes through this route
     const { passwordHash: _pw, ...updates } = req.body
     const user = await User.findByIdAndUpdate(
@@ -141,8 +145,11 @@ router.put('/:id', async (req, res) => {
 })
 
 // ── POST /api/users/:id/save-listing ──────────────────────
-router.post('/:id/save-listing', async (req, res) => {
+router.post('/:id/save-listing', requireAuth, async (req, res) => {
   try {
+    if (String(req.user.sub) !== String(req.params.id)) {
+      return res.status(403).json({ success: false, message: 'You can only update your own saved listings' })
+    }
     const { listingId } = req.body
     const user = await User.findById(req.params.id)
     if (!user) return res.status(404).json({ success: false, message: 'User not found' })

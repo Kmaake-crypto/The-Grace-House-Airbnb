@@ -1,5 +1,5 @@
 import { useSearchParams, useNavigate } from 'react-router-dom'
-import { useState, useMemo } from 'react'
+import { useMemo } from 'react'
 import Navbar from '../components/Navbar.jsx'
 import ListingCard from '../components/ListingCard.jsx'
 import { useTaplineListings } from '../hooks/useTaplineListings.js'
@@ -60,9 +60,14 @@ const SA_DEFAULT_MAP =
 /** Return the keyword that matches the current URL location param */
 function getActiveKeyword(locationParam) {
   if (!locationParam) return null
-  const lower = locationParam.toLowerCase()
-  const match = SA_DESTINATIONS.find((d) => lower.includes(d.keyword))
+  const normalized = locationParam.toLowerCase().replace(/[^a-z0-9]/g, '')
+  const match = SA_DESTINATIONS.find((d) => normalized.includes(d.keyword.replace(/[^a-z0-9]/g, '')))
   return match ? match.keyword : null
+}
+
+function getLocationMatch(locationParam) {
+  const normalized = locationParam.toLowerCase().replace(/[^a-z0-9]/g, '')
+  return SA_DESTINATIONS.find((d) => normalized.includes(d.keyword.replace(/[^a-z0-9]/g, '')))
 }
 
 export default function SearchResults() {
@@ -72,26 +77,26 @@ export default function SearchResults() {
 
   const { listings, loading, error } = useTaplineListings(locationParam)
 
-  // Track which city is selected for the map
-  const [activeKeyword, setActiveKeyword] = useState(() => getActiveKeyword(locationParam))
-  const [mapUrl, setMapUrl] = useState(() => {
-    const match = SA_DESTINATIONS.find((d) =>
-      locationParam.toLowerCase().includes(d.keyword)
-    )
-    return match ? match.mapUrl : SA_DEFAULT_MAP
-  })
+  const activeKeyword = getActiveKeyword(locationParam)
+  const activeDestination = getLocationMatch(locationParam)
+  const mapUrl = activeDestination?.mapUrl || SA_DEFAULT_MAP
 
   /** Filter fallback listings to only those matching the active city */
   const filteredListings = useMemo(() => {
-    if (!activeKeyword) return listings
+    if (!activeKeyword) {
+      const query = locationParam.toLowerCase().replace(/[^a-z0-9 ]/g, ' ').trim()
+      if (!query || query === 'south africa') return listings
+      return listings.filter((l) => {
+        const searchable = `${l.title} ${l.location}`.toLowerCase().replace(/[^a-z0-9 ]/g, ' ')
+        return query.split(/\s+/).filter(Boolean).some((term) => searchable.includes(term))
+      })
+    }
     return listings.filter((l) =>
-      l.location.toLowerCase().includes(activeKeyword)
+      l.location.toLowerCase().replace(/[^a-z0-9]/g, '').includes(activeKeyword.replace(/[^a-z0-9]/g, ''))
     )
-  }, [listings, activeKeyword])
+  }, [listings, activeKeyword, locationParam])
 
   function handleDestinationClick(dest) {
-    setActiveKeyword(dest.keyword)
-    setMapUrl(dest.mapUrl)
     navigate(`/search?location=${encodeURIComponent(dest.query)}`)
   }
 
@@ -175,8 +180,8 @@ export default function SearchResults() {
           </div>
 
           {/* ── Sidebar ── */}
-          <div className="hidden lg:block">
-            <div className="sticky top-6 space-y-5">
+          <div className="block">
+            <div className="lg:sticky lg:top-6 space-y-5">
 
               {/* Real OSM map iframe */}
               <div className="rounded-xl overflow-hidden" style={{ border: '1px solid var(--border)' }}>
@@ -266,8 +271,6 @@ export default function SearchResults() {
                   <li className="pt-2" style={{ borderTop: '1px solid var(--border)' }}>
                     <button
                       onClick={() => {
-                        setActiveKeyword(null)
-                        setMapUrl(SA_DEFAULT_MAP)
                         navigate('/search?location=South Africa')
                       }}
                       className="w-full flex items-center gap-2 text-sm rounded-lg px-3 py-2 transition-all text-left"

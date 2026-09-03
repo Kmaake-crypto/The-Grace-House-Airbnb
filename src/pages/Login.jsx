@@ -20,7 +20,9 @@ export default function Login({ role = 'guest' }) {
       const session = await login(form)
       navigate(location.state?.from || (session.user?.role === 'guest' ? '/' : '/dashboard'), { replace: true })
     } catch (err) {
-      setError(err.message)
+      setError(err.message === 'Failed to fetch'
+        ? 'The server is unavailable. Start the API with npm run dev:server and try again.'
+        : err.message)
     } finally {
       setSaving(false)
     }

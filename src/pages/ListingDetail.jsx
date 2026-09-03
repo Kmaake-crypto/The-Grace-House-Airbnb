@@ -13,6 +13,17 @@ function zarFormat(amount) {
   return `R ${Number(amount).toLocaleString('en-ZA')}`
 }
 
+function HighlightIcon({ type }) {
+  const paths = {
+    home: <><path d="m3 10 9-7 9 7" /><path d="M5 9v12h14V9M9 21v-6h6v6" /></>,
+    clean: <><path d="m15 4 5 5M13 6l5 5M4 20l6-6M3 21h6M14 3l7 7" /><path d="m12 12 3 3" /></>,
+    key: <><circle cx="8" cy="15" r="4" /><path d="m11 12 9-9M17 5l2 2M14 8l2 2" /></>,
+    calendar: <><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M8 3v4M16 3v4M3 10h18M8 14h.01M12 14h.01M16 14h.01" /></>,
+  }
+
+  return <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#016764" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{paths[type]}</svg>
+}
+
 export default function ListingDetail() {
   const { id } = useParams()
   const { listing, loading: listingLoading } = useTaplineListing(id)
@@ -148,13 +159,13 @@ export default function ListingDetail() {
             {/* Highlights */}
             <div className="py-6 space-y-4" style={{ borderBottom: '1px solid var(--border)' }}>
               {[
-                { icon: '🏠', title: 'Entire home', sub: "You'll have the place to yourself" },
-                { icon: '✨', title: 'Enhanced Clean', sub: "This host committed to Airbnb's 5-step cleaning process." },
-                { icon: '🔑', title: 'Self check-in', sub: 'Check yourself in with the keypad.' },
-                { icon: '📅', title: 'Free cancellation before check-in', sub: null },
+                { icon: 'home', title: 'Entire home', sub: "You'll have the place to yourself" },
+                { icon: 'clean', title: 'Enhanced Clean', sub: "This host committed to Airbnb's 5-step cleaning process." },
+                { icon: 'key', title: 'Self check-in', sub: 'Check yourself in with the keypad.' },
+                { icon: 'calendar', title: 'Free cancellation before check-in', sub: null },
               ].map((h) => (
                 <div key={h.title} className="flex gap-4">
-                  <span>{h.icon}</span>
+                  <span className="w-6 shrink-0"><HighlightIcon type={h.icon} /></span>
                   <div>
                     <p className="font-semibold text-sm" style={{ color: 'var(--text-primary)' }}>{h.title}</p>
                     {h.sub && <p className="text-sm" style={{ color: 'var(--text-muted)' }}>{h.sub}</p>}
@@ -186,7 +197,7 @@ export default function ListingDetail() {
                 <div className="grid grid-cols-2 gap-y-3 text-sm">
                   {listing.amenities.slice(0, showAllAmenities ? undefined : 6).map((a) => (
                     <div key={a} className="flex items-center gap-3" style={{ color: 'var(--text-primary)' }}>
-                      <span className="w-4 h-4 rounded-sm inline-block" style={{ border: '1px solid var(--text-muted)' }} />
+                      <span className="w-1.5 h-1.5 rounded-full inline-block shrink-0" style={{ background: '#016764' }} />
                       {a}
                     </div>
                   ))}

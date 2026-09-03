@@ -13,6 +13,10 @@ function zarFormat(amount) {
   return `R ${Number(amount).toLocaleString('en-ZA')}`
 }
 
+function todayString() {
+  return new Date().toISOString().split('T')[0]
+}
+
 function HighlightIcon({ type }) {
   const paths = {
     home: <><path d="m3 10 9-7 9 7" /><path d="M5 9v12h14V9M9 21v-6h6v6" /></>,
@@ -30,9 +34,13 @@ export default function ListingDetail() {
   const { user, isAuthenticated } = useAuth()
 
   const today = new Date()
-  const checkinDate = today.toISOString().split('T')[0]
-  const checkoutDate = new Date(today.getTime() + 7 * 86_400_000).toISOString().split('T')[0]
-  const [nights] = useState(7)
+  const defaultCheckin = today.toISOString().split('T')[0]
+  const defaultCheckout = new Date(today.getTime() + 7 * 86_400_000).toISOString().split('T')[0]
+  const [checkinDate, setCheckinDate] = useState(defaultCheckin)
+  const [checkoutDate, setCheckoutDate] = useState(defaultCheckout)
+  const nights = checkoutDate
+    ? Math.max(1, Math.round((new Date(checkoutDate) - new Date(checkinDate)) / 86_400_000))
+    : 1
   const [livePrice, setLivePrice] = useState(null)
   const [priceLoading, setPriceLoading] = useState(false)
   const [showBooking, setShowBooking] = useState(false)
@@ -107,7 +115,7 @@ export default function ListingDetail() {
       <Navbar />
 
       {showBooking && (
-        <BookingModal listing={listing} onClose={() => setShowBooking(false)} />
+        <BookingModal listing={listing} initialCheckin={checkinDate} initialCheckout={checkoutDate} onClose={() => setShowBooking(false)} />
       )}
 
       <div className="max-w-6xl mx-auto px-6 pt-6">
@@ -217,8 +225,16 @@ export default function ListingDetail() {
               <h3 className="font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
                 {nights} nights in {listing.location.split(',')[0]}
               </h3>
-              <MiniCalendar />
-              <button className="text-sm font-semibold underline mt-2" style={{ color: 'var(--text-link)' }}>Clear dates</button>
+              <MiniCalendar checkin={checkinDate} checkout={checkoutDate} onSelect={(date) => {
+                if (!checkoutDate) {
+                  if (date > checkinDate) setCheckoutDate(date)
+                  else setCheckinDate(date)
+                } else {
+                  setCheckinDate(date)
+                  setCheckoutDate('')
+                }
+              }} />
+              <button onClick={() => { setCheckinDate(defaultCheckin); setCheckoutDate(defaultCheckout) }} className="text-sm font-semibold underline mt-2" style={{ color: 'var(--text-link)' }}>Clear dates</button>
             </div>
 
             {/* Reviews */}
@@ -357,7 +373,7 @@ export default function ListingDetail() {
   )
 }
 
-function MiniCalendar() {
+function MiniCalendar({ checkin, checkout, onSelect }) {
   const now = new Date()
   const year = now.getFullYear()
   const month = now.getMonth()
@@ -368,7 +384,7 @@ function MiniCalendar() {
       name: d.toLocaleString('en-ZA', { month: 'long', year: 'numeric' }),
       days: new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate(),
       startOffset: d.getDay(),
-      highlighted: offset === 0 ? [1, 2, 3, 4, 5, 6, 7] : [],
+      highlighted: [],
     }
   }
 
@@ -384,17 +400,21 @@ function MiniCalendar() {
             {Array.from({ length: m.startOffset }).map((_, i) => <span key={`b${i}`} />)}
             {Array.from({ length: m.days }).map((_, i) => {
               const day = i + 1
-              const active = m.highlighted.includes(day)
+              const date = new Date(m.name.split(' ')[1], new Date(`${m.name} 1`).getMonth(), day).toISOString().split('T')[0]
+              const active = date === checkin || date === checkout
               return (
-                <span
+                <button
                   key={day}
+                  type="button"
+                  onClick={() => onSelect(date)}
+                  disabled={date < todayString()}
                   className="rounded-full py-1"
                   style={active
                     ? { background: '#016764', color: '#fff' }
-                    : { color: 'var(--text-primary)' }}
+                    : { color: date < todayString() ? 'var(--text-muted)' : 'var(--text-primary)' }}
                 >
                   {day}
-                </span>
+                </button>
               )
             })}
           </div>

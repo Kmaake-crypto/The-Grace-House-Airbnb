@@ -25,11 +25,11 @@ const today = new Date().toISOString().split('T')[0]
  *   listing   — the listing object
  *   onClose   — called to dismiss the modal
  */
-export default function BookingModal({ listing, onClose }) {
+export default function BookingModal({ listing, initialCheckin, initialCheckout, onClose }) {
   const { user, isAuthenticated } = useAuth()
   const [step, setStep] = useState('form') // 'form' | 'confirm' | 'done'
-  const [checkin, setCheckin]   = useState(today)
-  const [checkout, setCheckout] = useState(addDays(today, 7))
+  const [checkin, setCheckin]   = useState(initialCheckin || today)
+  const [checkout, setCheckout] = useState(initialCheckout || addDays(today, 7))
   const [guests, setGuests]     = useState(1)
   const [guestName,  setGuestName]  = useState(user?.name || '')
   const [guestEmail, setGuestEmail] = useState(user?.email || '')

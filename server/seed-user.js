@@ -1,8 +1,10 @@
 import mongoose from 'mongoose'
+import dns from 'node:dns'
 import { config } from 'dotenv'
 import User from './models/User.js'
 
 config({ path: './server/.env' })
+dns.setServers((process.env.DNS_SERVERS || '1.1.1.1,8.8.8.8').split(','))
 
 const email = 'koketsomaake295@gmail.com'
 const password = 'Kmaake0616368479$'

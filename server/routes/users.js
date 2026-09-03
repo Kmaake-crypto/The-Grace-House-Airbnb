@@ -49,14 +49,14 @@ router.post('/register', async (req, res) => {
     }
 
     const normalizedEmail = email.toLowerCase()
-    const fallbackUser = getFallbackUserByEmail(normalizedEmail)
-    if (fallbackUser) {
-      return res.status(409).json({ success: false, message: 'Email already registered' })
-    }
 
     const accountRole = role === 'host' ? 'host' : 'guest'
 
     if (mongoose.connection.readyState !== 1) {
+      const fallbackUser = getFallbackUserByEmail(normalizedEmail)
+      if (fallbackUser) {
+        return res.status(409).json({ success: false, message: 'Email already registered' })
+      }
       const created = createFallbackUser({
         name,
         email: normalizedEmail,
@@ -97,18 +97,17 @@ router.post('/login', async (req, res) => {
     }
 
     const normalizedEmail = email.toLowerCase()
-    const fallbackUser = getFallbackUserByEmail(normalizedEmail)
     const isHostLogin = role === 'host'
     const hasExpectedRole = (user) => isHostLogin
       ? user.role === 'host' || user.role === 'admin'
       : user.role === 'guest'
 
-    if (fallbackUser && verifyFallbackPassword(normalizedEmail, password) && hasExpectedRole(fallbackUser)) {
-      const { passwordHash: _pw, ...safe } = fallbackUser
-      return res.json({ success: true, user: safe, token: createToken({ _id: fallbackUser._id, role: fallbackUser.role }) })
-    }
-
     if (mongoose.connection.readyState !== 1) {
+      const fallbackUser = getFallbackUserByEmail(normalizedEmail)
+      if (fallbackUser && verifyFallbackPassword(normalizedEmail, password) && hasExpectedRole(fallbackUser)) {
+        const { passwordHash: _pw, ...safe } = fallbackUser
+        return res.json({ success: true, user: safe, token: createToken({ _id: fallbackUser._id, role: fallbackUser.role }) })
+      }
       return res.status(401).json({ success: false, message: 'Invalid email or password' })
     }
 

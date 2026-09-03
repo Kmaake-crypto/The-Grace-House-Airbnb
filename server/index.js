@@ -1,4 +1,5 @@
 import { config } from 'dotenv'
+import dns from 'node:dns'
 import { fileURLToPath } from 'url'
 import { dirname, join } from 'path'
 import express from 'express'
@@ -15,6 +16,7 @@ import taplineRoutes from './routes/tapline.js'
 // Load server/.env regardless of where node is invoked from
 const __dirname = dirname(fileURLToPath(import.meta.url))
 config({ path: join(__dirname, '.env') })
+dns.setServers((process.env.DNS_SERVERS || '1.1.1.1,8.8.8.8').split(','))
 
 const app  = express()
 const PORT = process.env.PORT || 5000

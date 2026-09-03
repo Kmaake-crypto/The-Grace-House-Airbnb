@@ -1,4 +1,5 @@
 import crypto from 'crypto'
+import { DEMO_ACCOUNTS } from './demoAccounts.js'
 
 const fallbackUsers = new Map()
 const fallbackListings = new Map()
@@ -9,26 +10,28 @@ function hashPassword(value) {
 }
 
 const seedEmail = 'koketsomaake295@gmail.com'
-const seedPassword = 'Kmaake0616368479$'
 
 export function ensureFallbackSeedUser() {
-  if (!fallbackUsers.has(seedEmail.toLowerCase())) {
-    fallbackUsers.set(seedEmail.toLowerCase(), {
-      _id: 'local-seed-user',
-      name: 'Koketso Maake',
-      email: seedEmail.toLowerCase(),
-      phone: '',
-      role: 'host',
-      avatar: '',
-      isSuperhost: false,
-      hostSince: null,
-      savedListings: [],
-      isActive: true,
-      passwordHash: hashPassword(seedPassword),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    })
-  }
+  DEMO_ACCOUNTS.forEach((account, index) => {
+    const email = account.email.toLowerCase()
+    if (!fallbackUsers.has(email)) {
+      fallbackUsers.set(email, {
+        _id: `local-demo-${index + 1}`,
+        name: account.name,
+        email,
+        phone: '',
+        role: account.role,
+        avatar: '',
+        isSuperhost: false,
+        hostSince: null,
+        savedListings: [],
+        isActive: true,
+        passwordHash: hashPassword(account.password),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      })
+    }
+  })
 
   return fallbackUsers.get(seedEmail.toLowerCase())
 }
@@ -86,9 +89,9 @@ export function getFallbackListingById(id) {
   return listing?.isActive ? { ...listing } : null
 }
 
-export function updateFallbackListing(id, ownerId, data) {
+export function updateFallbackListing(id, ownerId, data, allowAll = false) {
   const listing = fallbackListings.get(String(id))
-  if (!listing || !listing.isActive || String(listing.owner) !== String(ownerId)) return null
+  if (!listing || !listing.isActive || (!allowAll && String(listing.owner) !== String(ownerId))) return null
   Object.assign(listing, data, { owner: listing.owner, updatedAt: new Date().toISOString() })
   return { ...listing }
 }
@@ -106,9 +109,9 @@ export function createFallbackListing(data) {
   return { ...listing }
 }
 
-export function deactivateFallbackListing(id) {
+export function deactivateFallbackListing(id, ownerId = null, allowAll = false) {
   const listing = fallbackListings.get(id)
-  if (!listing) return null
+  if (!listing || (!allowAll && String(listing.owner) !== String(ownerId))) return null
   listing.isActive = false
   listing.updatedAt = new Date().toISOString()
   return { ...listing }

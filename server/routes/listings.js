@@ -89,12 +89,12 @@ router.put('/:id', requireAuth, requireHost, async (req, res) => {
     const editable = ['title', 'location', 'description', 'type', 'guests', 'beds', 'baths', 'price', 'priceFormatted', 'currency', 'image', 'gallery', 'amenities']
     const updates = Object.fromEntries(editable.filter((field) => field in req.body).map((field) => [field, req.body[field]]))
     if (mongoose.connection.readyState !== 1) {
-      const listing = updateFallbackListing(req.params.id, req.user.sub, updates)
+      const listing = updateFallbackListing(req.params.id, req.user.sub, updates, req.user.role === 'admin')
       if (!listing) return res.status(404).json({ success: false, message: 'Listing not found' })
       return res.json({ success: true, listing })
     }
     const listing = await Listing.findOneAndUpdate(
-      { _id: req.params.id, owner: req.user.sub },
+      req.user.role === 'admin' ? { _id: req.params.id } : { _id: req.params.id, owner: req.user.sub },
       { ...updates, updatedAt: new Date() },
       { new: true, runValidators: true }
     )
@@ -109,14 +109,13 @@ router.put('/:id', requireAuth, requireHost, async (req, res) => {
 router.delete('/:id', requireAuth, requireHost, async (req, res) => {
   try {
     if (mongoose.connection.readyState !== 1) {
-      const ownedListing = getFallbackListings(req.user.sub).find((item) => String(item._id) === req.params.id)
-      const listing = ownedListing && deactivateFallbackListing(req.params.id)
+      const listing = deactivateFallbackListing(req.params.id, req.user.sub, req.user.role === 'admin')
       if (!listing) return res.status(404).json({ success: false, message: 'Listing not found' })
       return res.json({ success: true, message: 'Listing deactivated' })
     }
 
     const listing = await Listing.findOneAndUpdate(
-      { _id: req.params.id, owner: req.user.sub },
+      req.user.role === 'admin' ? { _id: req.params.id } : { _id: req.params.id, owner: req.user.sub },
       { isActive: false },
       { new: true }
     )

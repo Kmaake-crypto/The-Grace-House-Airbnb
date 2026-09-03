@@ -32,7 +32,9 @@ router.get('/', requireAuth, async (req, res) => {
       { listing: listingId },
       { externalListingId: listingId },
     ]
-    if (req.user.role === 'host') {
+    if (req.user.role === 'admin') {
+      // Admins can review the complete reservation ledger.
+    } else if (req.user.role === 'host') {
       const ownedListings = await Listing.find({ owner: req.user.sub }).distinct('_id')
       filter.$or = [
         { listing: { $in: ownedListings } },
@@ -61,7 +63,9 @@ router.get('/', requireAuth, async (req, res) => {
 // ── GET /api/bookings/:id ──────────────────────────────────
 router.get('/:id', requireAuth, async (req, res) => {
   try {
-    const accessFilter = req.user.role === 'host'
+    const accessFilter = req.user.role === 'admin'
+      ? {}
+      : req.user.role === 'host'
       ? { hostUser: req.user.sub }
       : { user: req.user.sub }
     const booking = await Booking.findOne({ _id: req.params.id, ...accessFilter }).populate('listing')
@@ -176,7 +180,9 @@ router.patch('/:id/status', requireAuth, async (req, res) => {
       return res.json({ success: true, booking })
     }
 
-    const accessFilter = req.user.role === 'host'
+    const accessFilter = req.user.role === 'admin'
+      ? {}
+      : req.user.role === 'host'
       ? { hostUser: req.user.sub }
       : { user: req.user.sub }
     const booking = await Booking.findOneAndUpdate(
@@ -202,7 +208,9 @@ router.delete('/:id', requireAuth, async (req, res) => {
       return res.json({ success: true, message: 'Booking cancelled', booking })
     }
 
-    const accessFilter = req.user.role === 'host'
+    const accessFilter = req.user.role === 'admin'
+      ? {}
+      : req.user.role === 'host'
       ? { hostUser: req.user.sub }
       : { user: req.user.sub }
     const booking = await Booking.findOneAndUpdate(

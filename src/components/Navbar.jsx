@@ -13,11 +13,13 @@ export default function Navbar({ dark = false, showSearch = true }) {
   const [profileOpen, setProfileOpen] = useState(false)
 
   const isHost = user?.role === 'host' || user?.role === 'admin'
-  const navLinks = isAuthenticated && isHost
+  const navLinks = isAuthenticated && user?.role === 'admin'
+    ? [{ to: '/admin', label: 'Admin Dashboard' }]
+    : isAuthenticated && isHost
     ? [{ to: '/dashboard', label: 'Dashboard' }, { to: '/hosting', label: 'Hosting' }]
     : isAuthenticated
     ? [{ to: '/', label: 'Explore stays' }]
-    : [{ to: '/login', label: 'Guest sign in' }, { to: '/register', label: 'Guest sign up' }, { to: '/admin/register', label: 'Become a host' }]
+    : []
 
   return (
     <header
@@ -50,22 +52,30 @@ export default function Navbar({ dark = false, showSearch = true }) {
           {navLinks.map(({ to, label }) => (
             <Link key={to} to={to} className="hover:underline">{label}</Link>
           ))}
-          {isAuthenticated && (
-            <div className="relative">
-              <button onClick={() => setProfileOpen((open) => !open)} className="flex items-center gap-2 hover:underline" aria-expanded={profileOpen}>
-                <span className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs" style={{ background: '#016764' }}>
-                  {(user?.name || 'User').split(' ').map((part) => part[0]).join('').slice(0, 2).toUpperCase()}
-                </span>
-                <span>{user?.name || 'Profile'}</span>
-              </button>
-              {profileOpen && (
-                <div className="absolute right-0 top-11 z-50 w-44 rounded-xl p-2 shadow-xl" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+          <div className="relative">
+            <button onClick={() => setProfileOpen((open) => !open)} className="flex items-center gap-2 hover:underline" aria-expanded={profileOpen} aria-label="Open profile menu">
+              <span className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs" style={{ background: '#016764' }}>
+                {isAuthenticated
+                  ? (user?.name || 'User').split(' ').map((part) => part[0]).join('').slice(0, 2).toUpperCase()
+                  : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="8" r="4" /><path d="M4 21a8 8 0 0 1 16 0" /></svg>}
+              </span>
+              <span>{isAuthenticated ? user?.name || 'Profile' : 'Profile'}</span>
+            </button>
+            {profileOpen && (
+              <div className="absolute right-0 top-11 z-50 w-56 rounded-xl p-3 shadow-xl" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+                {isAuthenticated ? <>
                   <button onClick={() => { navigate('/reservations'); setProfileOpen(false) }} className="block w-full text-left rounded-lg px-3 py-2 text-sm hover:bg-black/5">View reservations</button>
                   <button onClick={() => { logout(); setProfileOpen(false) }} className="block w-full text-left rounded-lg px-3 py-2 text-sm hover:bg-black/5">Log out</button>
-                </div>
-              )}
-            </div>
-          )}
+                </> : <>
+                  <p className="text-xs font-semibold uppercase tracking-wide px-3 pb-2" style={{ color: 'var(--text-muted)' }}>Guest account</p>
+                  <Link to="/login" onClick={() => setProfileOpen(false)} className="block rounded-lg px-3 py-2 text-sm font-semibold hover:bg-black/5">Guest sign in</Link>
+                  <Link to="/register" onClick={() => setProfileOpen(false)} className="block rounded-lg px-3 py-2 text-sm font-semibold hover:bg-black/5">Guest sign up</Link>
+                  <Link to="/admin/login" onClick={() => setProfileOpen(false)} className="block rounded-lg px-3 py-2 text-sm hover:bg-black/5" style={{ color: '#016764' }}>Host sign in</Link>
+                  <Link to="/admin/control/login" onClick={() => setProfileOpen(false)} className="block rounded-lg px-3 py-2 text-sm hover:bg-black/5" style={{ color: '#016764' }}>Admin sign in</Link>
+                </>}
+              </div>
+            )}
+          </div>
 
           {/* Dark / Light toggle */}
           <button
@@ -103,6 +113,17 @@ export default function Navbar({ dark = false, showSearch = true }) {
           </button>
 
           <button
+            onClick={() => setProfileOpen((open) => !open)}
+            aria-expanded={profileOpen}
+            aria-label="Open profile menu"
+            className="w-8 h-8 rounded-full flex items-center justify-center text-white"
+            style={{ background: '#016764' }}
+          >
+            {isAuthenticated
+              ? (user?.name || 'User').split(' ').map((part) => part[0]).join('').slice(0, 2).toUpperCase()
+              : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="8" r="4" /><path d="M4 21a8 8 0 0 1 16 0" /></svg>}
+          </button>
+          <button
             onClick={() => setMenuOpen((o) => !o)}
             aria-label="Open menu"
             className="flex flex-col gap-1.5 p-1"
@@ -119,6 +140,21 @@ export default function Navbar({ dark = false, showSearch = true }) {
           </button>
         </div>
       </div>
+
+      {profileOpen && (
+        <div className="md:hidden absolute right-6 top-full z-50 w-56 rounded-xl p-3 shadow-xl" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+          {isAuthenticated ? <>
+            <button onClick={() => { navigate('/reservations'); setProfileOpen(false) }} className="block w-full text-left rounded-lg px-3 py-2 text-sm hover:bg-black/5">View reservations</button>
+            <button onClick={() => { logout(); setProfileOpen(false) }} className="block w-full text-left rounded-lg px-3 py-2 text-sm hover:bg-black/5">Log out</button>
+          </> : <>
+            <p className="text-xs font-semibold uppercase tracking-wide px-3 pb-2" style={{ color: 'var(--text-muted)' }}>Guest account</p>
+            <Link to="/login" onClick={() => setProfileOpen(false)} className="block rounded-lg px-3 py-2 text-sm font-semibold hover:bg-black/5">Guest sign in</Link>
+            <Link to="/register" onClick={() => setProfileOpen(false)} className="block rounded-lg px-3 py-2 text-sm font-semibold hover:bg-black/5">Guest sign up</Link>
+            <Link to="/admin/login" onClick={() => setProfileOpen(false)} className="block rounded-lg px-3 py-2 text-sm hover:bg-black/5" style={{ color: '#016764' }}>Host sign in</Link>
+            <Link to="/admin/control/login" onClick={() => setProfileOpen(false)} className="block rounded-lg px-3 py-2 text-sm hover:bg-black/5" style={{ color: '#016764' }}>Admin sign in</Link>
+          </>}
+        </div>
+      )}
 
       {/* Mobile dropdown menu */}
       {menuOpen && (

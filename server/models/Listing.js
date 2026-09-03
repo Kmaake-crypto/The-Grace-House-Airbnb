@@ -32,11 +32,10 @@ const listingSchema = new mongoose.Schema(
 )
 
 // Auto-generate priceFormatted before saving
-listingSchema.pre('save', function (next) {
+listingSchema.pre('save', function () {
   if (this.isModified('price') || !this.priceFormatted) {
     this.priceFormatted = `R ${Number(this.price).toLocaleString('en-ZA')}`
   }
-  next()
 })
 
 // Text index for search

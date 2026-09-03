@@ -1,10 +1,10 @@
-import { Link } from 'react-router-dom'
-import { useState, useEffect } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import { useState, useEffect, useMemo } from 'react'
 import Footer from '../components/Footer.jsx'
 import Navbar from '../components/Navbar.jsx'
-import { reservations as staticReservations, listings as staticListings } from '../data/listings.js'
 import { bookingsApi, listingsApi } from '../services/api.js'
 import { useAuth } from '../context/useAuth.js'
+import { useTaplineListings } from '../hooks/useTaplineListings.js'
 
 function zarFormat(amount) {
   return `R ${Number(amount).toLocaleString('en-ZA')}`
@@ -25,6 +25,9 @@ function StatIcon({ type }) {
 
 export default function Dashboard() {
   const { user } = useAuth()
+  const navigate = useNavigate()
+  const isAdmin = user?.role === 'admin'
+  const { listings: liveListings } = useTaplineListings('South Africa')
   const [tab, setTab] = useState('reservations')
 
   // ── Bookings from MongoDB ──────────────────────────────
@@ -32,7 +35,7 @@ export default function Dashboard() {
   const [bookingsLoading, setBLoading] = useState(true)
 
   // ── Listings from MongoDB (+ static fallback) ──────────
-  const [listings, setListings]         = useState(staticListings)
+  const [listings, setListings]         = useState([])
   const [listingsLoading, setLLoading]  = useState(true)
 
   useEffect(() => {
@@ -49,27 +52,32 @@ export default function Dashboard() {
           status:   b.status,
           ref:      b.confirmationRef,
         }))
-        setRows(normalised.length ? normalised : staticReservations)
+        setRows(normalised)
       })
-      .catch(() => setRows(staticReservations))
+      .catch(() => setRows([]))
       .finally(() => setBLoading(false))
 
     // Fetch listings
-    listingsApi.getAll({ mine: 'true' })
+    listingsApi.getAll(user?.role === 'admin' ? {} : { mine: 'true' })
       .then((data) => {
-        if (data.listings?.length) setListings([...data.listings, ...staticListings])
-        else setListings(staticListings)
+        setListings(data.listings || [])
       })
-      .catch(() => setListings(staticListings))
+      .catch(() => setListings([]))
       .finally(() => setLLoading(false))
   }, [])
 
+  const displayedListings = useMemo(() => {
+    if (!isAdmin || !liveListings.length) return listings
+      const existingIds = new Set(listings.map((listing) => String(listing._id || listing.id)))
+      return [...listings, ...liveListings.filter((listing) => !existingIds.has(String(listing._id || listing.id)))]
+  }, [isAdmin, listings, liveListings])
+
   const statCards = [
-    { label: 'Total Listings',      value: listings.length,  icon: 'listings' },
+    { label: 'Total Listings',      value: displayedListings.length,  icon: 'listings' },
     { label: 'Active Reservations', value: rows.length,      icon: 'reservations' },
-    { label: 'Monthly Revenue',     value: zarFormat(listings.reduce((s, l) => s + (l.price ?? 0) * 7, 0)), icon: 'revenue' },
-    { label: 'Avg. Rating',         value: listings.length
-        ? (listings.reduce((s, l) => s + (l.rating ?? 0), 0) / listings.length).toFixed(2)
+    { label: 'Monthly Revenue',     value: zarFormat(displayedListings.reduce((s, l) => s + (l.price ?? 0) * 7, 0)), icon: 'revenue' },
+    { label: 'Avg. Rating',         value: displayedListings.length
+      ? (displayedListings.reduce((s, l) => s + (l.rating ?? 0), 0) / displayedListings.length).toFixed(2)
       : '—', icon: 'rating' },
   ]
 
@@ -78,6 +86,51 @@ export default function Dashboard() {
       if (rows[idx]?.id) await bookingsApi.cancel(rows[idx].id)
     } catch (_) {}
     setRows((prev) => prev.filter((_, i) => i !== idx))
+  }
+
+  async function handleDeleteListing(id) {
+    try {
+      await listingsApi.remove(id)
+      setListings((current) => current.filter((listing) => listing.id !== id && listing._id !== id))
+    } catch (error) {
+      window.alert(error.message)
+    }
+  }
+
+  async function persistApiListing(listing) {
+    const { listing: savedListing } = await listingsApi.create({
+      title: listing.title,
+      location: listing.location,
+      description: listing.description,
+      type: listing.type,
+      guests: listing.guests,
+      beds: listing.beds,
+      baths: listing.baths,
+      price: listing.price,
+      priceFormatted: listing.priceFormatted,
+      currency: listing.currency,
+      rating: listing.rating,
+      reviews: listing.reviews,
+      host: listing.host,
+      hostSince: listing.hostSince,
+      image: listing.image,
+      gallery: listing.gallery,
+      amenities: listing.amenities,
+    })
+    return savedListing
+  }
+
+  async function handleEditListing(listing) {
+    if (listing.isFromApi) {
+      try {
+        const savedListing = await persistApiListing(listing)
+        navigate(`/create-listing?id=${encodeURIComponent(savedListing._id)}`)
+      } catch (error) {
+        window.alert(error.message)
+      }
+      return
+    }
+    navigate(`/create-listing?id=${encodeURIComponent(listing.id || listing._id)}`)
   }
 
   return (
@@ -91,10 +144,10 @@ export default function Dashboard() {
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-2xl font-semibold" style={{ color: 'var(--text-primary)' }}>
-              Host Dashboard
+              {isAdmin ? 'Admin Dashboard' : 'Host Dashboard'}
             </h1>
             <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>
-              Manage your South African properties
+              {isAdmin ? 'Manage the complete Grace House platform' : 'Manage your South African properties'}
             </p>
           </div>
           <div className="flex items-center gap-3">
@@ -191,8 +244,8 @@ export default function Dashboard() {
               </div>
             )}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {listings.map((l) => (
-              <div key={l.id} className="rounded-xl overflow-hidden"
+            {displayedListings.map((l) => (
+              <div key={l.id || l._id} className="rounded-xl overflow-hidden"
                 style={{ border: '1px solid var(--border)', background: 'var(--bg-card)' }}>
                 <div className="relative h-40">
                   <img src={l.image} alt={l.title} className="h-full w-full object-cover" />
@@ -214,16 +267,36 @@ export default function Dashboard() {
                     </span>
                   </div>
                   <div className="flex gap-2 mt-3">
-                    <Link to={`/listing/${l.id}`}
+                    <Link to={`/listing/${l.id || l._id}`}
                       className="flex-1 text-center text-xs font-semibold rounded-md py-1.5 transition-opacity hover:opacity-80"
                       style={{ background: 'var(--bg-surface)', color: 'var(--text-primary)', border: '1px solid var(--border)' }}>
-                      View
+                      View listing
                     </Link>
-                    <Link to={String(l.id).startsWith('sa-') ? `/listing/${l.id}` : `/create-listing?id=${encodeURIComponent(l.id)}`}
+                    <button onClick={() => String(l.id || l._id).startsWith('sa-') ? navigate(`/listing/${l.id || l._id}`) : handleEditListing(l)}
                       className="flex-1 text-center text-xs font-semibold rounded-md py-1.5 text-white transition-opacity hover:opacity-80"
                       style={{ background: 'linear-gradient(135deg,#016764,#001E1E)' }}>
-                      {String(l.id).startsWith('sa-') ? 'View' : 'Edit'}
-                    </Link>
+                      {String(l.id || l._id).startsWith('sa-') ? 'View listing' : l.isFromApi ? 'Import & edit' : 'Edit listing'}
+                    </button>
+                    {!String(l.id || l._id).startsWith('sa-') && !l.isFromApi && (
+                      <button onClick={() => handleDeleteListing(l.id || l._id)}
+                        className="flex-1 text-xs font-semibold rounded-md py-1.5 transition-opacity hover:opacity-80"
+                        style={{ background: '#c41854', color: '#fff' }}>
+                        Delete listing
+                      </button>
+                    )}
+                    {isAdmin && l.isFromApi && (
+                      <button onClick={async () => {
+                        try {
+                          const savedListing = await persistApiListing(l)
+                          await handleDeleteListing(savedListing._id)
+                          setListings((current) => current.filter((listing) => listing.id !== l.id))
+                        } catch (error) {
+                          window.alert(error.message)
+                        }
+                      }} className="flex-1 text-xs font-semibold rounded-md py-1.5" style={{ background: '#c41854', color: '#fff' }}>
+                      Delete listing
+                    </button>
+                    )}
                   </div>
                 </div>
               </div>

@@ -48,7 +48,7 @@ router.post('/register', async (req, res) => {
       return res.status(400).json({ success: false, message: 'name, email and password are required' })
     }
 
-    const normalizedEmail = email.toLowerCase()
+    const normalizedEmail = email.trim().toLowerCase()
 
     const accountRole = role === 'host' ? 'host' : 'guest'
 
@@ -96,10 +96,12 @@ router.post('/login', async (req, res) => {
       return res.status(400).json({ success: false, message: 'email and password are required' })
     }
 
-    const normalizedEmail = email.toLowerCase()
+    const normalizedEmail = email.trim().toLowerCase()
     const isHostLogin = role === 'host'
-    const hasExpectedRole = (user) => isHostLogin
-      ? user.role === 'host' || user.role === 'admin'
+    const hasExpectedRole = (user) => role === 'admin'
+      ? user.role === 'admin'
+      : isHostLogin
+      ? user.role === 'host'
       : user.role === 'guest'
 
     if (mongoose.connection.readyState !== 1) {
@@ -113,7 +115,12 @@ router.post('/login', async (req, res) => {
 
     const user = await User.findOne({ email: normalizedEmail, isActive: true }).select('+passwordHash')
     if (!user || !user.checkPassword(password) || !hasExpectedRole(user)) {
-      return res.status(401).json({ success: false, message: 'Invalid email or password' })
+      return res.status(401).json({
+        success: false,
+        message: isHostLogin
+          ? 'Host account not found or password incorrect'
+          : 'Guest account not found or password incorrect. Please sign up first.',
+      })
     }
 
     const { passwordHash: _pw, ...safe } = user.toObject()

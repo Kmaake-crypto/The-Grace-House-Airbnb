@@ -10,10 +10,10 @@ import Register from './pages/Register.jsx'
 import Reservations from './pages/Reservations.jsx'
 import { useAuth } from './context/useAuth.js'
 
-function ProtectedRoute({ hostOnly = false }) {
+function ProtectedRoute({ role }) {
   const { isAuthenticated, user } = useAuth()
   const location = useLocation()
-  const canAccess = isAuthenticated && (!hostOnly || user?.role === 'host' || user?.role === 'admin')
+  const canAccess = isAuthenticated && (!role || user?.role === role || (role === 'host' && user?.role === 'admin'))
 
   return canAccess
     ? <Outlet />
@@ -34,14 +34,18 @@ export default function App() {
       <Route path="/login"            element={<Login role="guest" />} />
       <Route path="/register"         element={<Register role="guest" />} />
       <Route path="/admin/login"      element={<Login role="host" />} />
+      <Route path="/admin/control/login" element={<Login role="admin" />} />
       <Route path="/admin/register"   element={<Register role="host" />} />
       <Route element={<AuthenticatedRoute />}>
         <Route path="/reservations" element={<Reservations />} />
       </Route>
-      <Route element={<ProtectedRoute hostOnly />}>
+      <Route element={<ProtectedRoute role="host" />}>
         <Route path="/dashboard"      element={<Dashboard />} />
         <Route path="/hosting"        element={<Dashboard />} />
         <Route path="/create-listing" element={<CreateListing />} />
+      </Route>
+      <Route element={<ProtectedRoute role="admin" />}>
+        <Route path="/admin" element={<Dashboard />} />
       </Route>
       {/* Catch-all 404 */}
       <Route path="*"                 element={<NotFound />} />

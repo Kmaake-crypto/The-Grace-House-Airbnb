@@ -51,11 +51,10 @@ const bookingSchema = new mongoose.Schema(
 )
 
 // Auto-generate a short confirmation reference before saving
-bookingSchema.pre('save', function (next) {
+bookingSchema.pre('save', function () {
   if (!this.confirmationRef) {
     this.confirmationRef = 'GH-' + Math.random().toString(36).slice(2, 8).toUpperCase()
   }
-  next()
 })
 
 export default mongoose.model('Booking', bookingSchema)

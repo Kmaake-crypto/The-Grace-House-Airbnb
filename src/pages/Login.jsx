@@ -7,8 +7,13 @@ export default function Login({ role = 'guest' }) {
   const navigate = useNavigate()
   const location = useLocation()
   const { login } = useAuth()
+  const isAdminLogin = role === 'admin'
   const isHostLogin = role === 'host'
-  const [form, setForm] = useState({ email: '', password: '', role })
+  const [form, setForm] = useState({
+    email: isHostLogin ? 'koketsomaake295@gmail.com' : isAdminLogin ? 'admin@gracehouse.co.za' : '',
+    password: isHostLogin ? 'Kmaake0616368479$' : isAdminLogin ? 'Admin123!' : '',
+    role,
+  })
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
 
@@ -18,7 +23,7 @@ export default function Login({ role = 'guest' }) {
     setSaving(true)
     try {
       const session = await login(form)
-      navigate(location.state?.from || (session.user?.role === 'guest' ? '/' : '/dashboard'), { replace: true })
+      navigate(location.state?.from || (session.user?.role === 'guest' ? '/' : session.user?.role === 'admin' ? '/admin' : '/dashboard'), { replace: true })
     } catch (err) {
       setError(err.message === 'Failed to fetch'
         ? 'The server is unavailable. Start the API with npm run dev:server and try again.'
@@ -33,8 +38,11 @@ export default function Login({ role = 'guest' }) {
       <Navbar showSearch={false} />
       <main className="max-w-md mx-auto px-6 py-16">
         <div className="rounded-2xl p-8" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
-          <h1 className="text-2xl font-semibold" style={{ color: 'var(--text-primary)' }}>{isHostLogin ? 'Host sign in' : 'Guest sign in'}</h1>
-          <p className="text-sm mt-2" style={{ color: 'var(--text-muted)' }}>{isHostLogin ? 'Access your host dashboard and listings.' : 'Sign in to book and manage your stays.'}</p>
+          <h1 className="text-2xl font-semibold" style={{ color: 'var(--text-primary)' }}>{isAdminLogin ? 'Admin sign in' : isHostLogin ? 'Host sign in' : 'Guest sign in'}</h1>
+          <p className="text-sm mt-2" style={{ color: 'var(--text-muted)' }}>{isAdminLogin ? 'Manage users, listings, and reservations.' : isHostLogin ? 'Access your host dashboard and listings.' : 'Sign in to book and manage your stays.'}</p>
+          <div className="mt-5 rounded-lg px-3 py-2 text-xs" style={{ background: 'rgba(1,103,100,.12)', color: 'var(--text-primary)' }}>
+            Demo {isAdminLogin ? 'admin' : isHostLogin ? 'host' : 'guest'} account: <strong>{isAdminLogin ? 'admin@gracehouse.co.za' : isHostLogin ? 'koketsomaake295@gmail.com' : 'guest@gracehouse.co.za'}</strong><br />Password: <strong>{isAdminLogin ? 'Admin123!' : isHostLogin ? 'Kmaake0616368479$' : 'Guest123!'}</strong>
+          </div>
           {error && <p className="mt-5 rounded-lg px-3 py-2 text-sm" style={{ background: 'rgba(227,28,95,.1)', color: '#c41854' }}>{error}</p>}
           <form onSubmit={handleSubmit} className="space-y-4 mt-6">
             <label className="block text-sm font-medium" style={{ color: 'var(--text-primary)' }}>

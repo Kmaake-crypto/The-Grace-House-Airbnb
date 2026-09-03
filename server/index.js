@@ -8,6 +8,7 @@ import mongoose from 'mongoose'
 
 import { ensureFallbackSeedUser } from './fallbackStore.js'
 import User from './models/User.js'
+import { DEMO_ACCOUNTS } from './demoAccounts.js'
 import listingRoutes from './routes/listings.js'
 import bookingRoutes from './routes/bookings.js'
 import userRoutes   from './routes/users.js'
@@ -57,35 +58,20 @@ app.use((err, _req, res, _next) => {
 const MONGO_URI = process.env.MONGO_URI
 
 async function ensureSeedUser() {
-  const email = 'koketsomaake295@gmail.com'
-  const password = 'Kmaake0616368479$'
-  const normalizedEmail = email.trim().toLowerCase()
-
   try {
-    const existing = await User.findOne({ email: normalizedEmail })
-
-    if (existing) {
-      existing.name = existing.name || 'Koketso Maake'
-      existing.role = 'host'
-      existing.isActive = true
-      existing.setPassword(password)
-      await existing.save()
-      console.log(`✅ Seed user updated: ${normalizedEmail}`)
-      return
+    for (const account of DEMO_ACCOUNTS) {
+      const normalizedEmail = account.email.trim().toLowerCase()
+      const existing = await User.findOne({ email: normalizedEmail })
+      const user = existing || new User({ email: normalizedEmail })
+      user.name = account.name
+      user.role = account.role
+      user.isActive = true
+      user.setPassword(account.password)
+      await user.save()
+      console.log(`✅ Demo ${account.role} ready: ${normalizedEmail}`)
     }
-
-    const newUser = new User({
-      name: 'Koketso Maake',
-      email: normalizedEmail,
-      role: 'host',
-      isActive: true,
-    })
-
-    newUser.setPassword(password)
-    await newUser.save()
-    console.log(`✅ Seed user created: ${normalizedEmail}`)
   } catch (err) {
-    console.error('⚠️ Seed user setup failed:', err.message)
+    console.error('⚠️ Demo account setup failed:', err.message)
   }
 }
 

@@ -26,3 +26,4 @@ dist-ssr
 # Environment secrets — never commit these
 .env
 server/.env
+.env.example

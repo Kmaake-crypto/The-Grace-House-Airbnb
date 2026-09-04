@@ -110,16 +110,30 @@ router.post('/login', async (req, res) => {
         const { passwordHash: _pw, ...safe } = fallbackUser
         return res.json({ success: true, user: safe, token: createToken({ _id: fallbackUser._id, role: fallbackUser.role }) })
       }
-      return res.status(401).json({ success: false, message: 'Invalid email or password' })
+      return res.status(401).json({ success: false, message: 'Incorrect email or password.' })
     }
 
     const user = await User.findOne({ email: normalizedEmail, isActive: true }).select('+passwordHash')
-    if (!user || !user.checkPassword(password) || !hasExpectedRole(user)) {
+
+    if (!user || !user.checkPassword(password)) {
       return res.status(401).json({
         success: false,
-        message: isHostLogin
-          ? 'Host account not found or password incorrect'
-          : 'Guest account not found or password incorrect. Please sign up first.',
+        message: 'Incorrect email or password.',
+      })
+    }
+
+    // Role check — admin can log in from any login page
+    if (role !== 'admin' && user.role === 'admin') {
+      return res.status(403).json({
+        success: false,
+        message: 'Please use the admin login page.',
+      })
+    }
+
+    if (!hasExpectedRole(user)) {
+      return res.status(403).json({
+        success: false,
+        message: `This account is registered as a ${user.role}. Please use the correct sign-in page.`,
       })
     }
 

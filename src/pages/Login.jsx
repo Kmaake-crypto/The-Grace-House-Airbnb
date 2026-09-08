@@ -41,7 +41,7 @@ export default function Login({ role = 'guest' }) {
           <h1 className="text-2xl font-semibold" style={{ color: 'var(--text-primary)' }}>{isAdminLogin ? 'Admin sign in' : isHostLogin ? 'Host sign in' : 'Guest sign in'}</h1>
           <p className="text-sm mt-2" style={{ color: 'var(--text-muted)' }}>{isAdminLogin ? 'Manage users, listings, and reservations.' : isHostLogin ? 'Access your host dashboard and listings.' : 'Sign in to book and manage your stays.'}</p>
           <div className="mt-5 rounded-lg px-3 py-2 text-xs" style={{ background: 'rgba(1,103,100,.12)', color: 'var(--text-primary)' }}>
-            Demo {isAdminLogin ? 'admin' : isHostLogin ? 'host' : 'guest'} account: <strong>{isAdminLogin ? 'admin@gracehouse.co.za' : isHostLogin ? 'koketsomaake295@gmail.com' : 'guest@grace.co.za'}</strong><br />Password: <strong>{isAdminLogin ? 'Admin123!' : isHostLogin ? 'Kmaake0616368479$' : 'Guest123!'}</strong>
+            Demo {isAdminLogin ? 'admin' : isHostLogin ? 'host' : 'guest'} account: <strong>{isAdminLogin ? 'admin@grace.co.za' : isHostLogin ? '' : 'guest@grace.co.za'}</strong><br />Password: <strong>{isAdminLogin ? 'Admin123!' : isHostLogin ? 'Kmaake0616368479$' : 'Guest123!'}</strong>
           </div>
           {error && <p className="mt-5 rounded-lg px-3 py-2 text-sm" style={{ background: 'rgba(227,28,95,.1)', color: '#c41854' }}>{error}</p>}
           <form onSubmit={handleSubmit} className="space-y-4 mt-6">

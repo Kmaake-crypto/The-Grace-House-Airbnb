@@ -25,7 +25,7 @@ npm install
 npm run dev:all
 ```
 
-The frontend runs at `http://localhost:5173` and the API at `http://localhost:5000`.
+The frontend runs at `https://the-grace-house-airbnb-1.onrender.com` and the API at `https://the-grace-house-airbnb.onrender.com/`.
 Set the required values in `server/.env`. `MONGO_URI` is optional during local development; the API uses fallback storage when MongoDB is unavailable. `TAPLINE_API_KEY` remains server-side.
 
 ## Demo accounts

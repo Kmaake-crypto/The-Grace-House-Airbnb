@@ -1,5 +1,6 @@
 import { config } from 'dotenv'
 import dns from 'node:dns'
+import fs from 'node:fs'
 import { fileURLToPath } from 'url'
 import { dirname, join } from 'path'
 import express from 'express'
@@ -23,7 +24,17 @@ const app  = express()
 const PORT = process.env.PORT || 5000
 
 // ── Middleware ────────────────────────────────────────────
-app.use(cors({ origin: process.env.CLIENT_ORIGIN || 'http://localhost:5173' }))
+const clientOrigin = process.env.CLIENT_ORIGIN || 'http://localhost:5173'
+const stripSlash = (s) => (s || '').replace(/\/+$/, '')
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true)
+    const allowed = clientOrigin.split(',').map((o) => stripSlash(o.trim()))
+    if (allowed.includes(stripSlash(origin)) || allowed.includes('*')) return callback(null, true)
+    callback(null, false)
+  },
+  credentials: true,
+}))
 app.use(express.json({ limit: '10mb' }))
 app.use(express.urlencoded({ extended: true }))
 
@@ -41,6 +52,22 @@ app.use('/api/listings', listingRoutes)
 app.use('/api/bookings', bookingRoutes)
 app.use('/api/users',    userRoutes)
 app.use('/api/tapline',  taplineRoutes)
+
+// ── Serve built React app (combined deployment) ───────────
+// The build outputs to root ./dist (Vite root = repo cwd).
+// Supports both root ./dist and ./client/dist for flexibility.
+const clientDistPath = join(__dirname, '..', 'dist')
+const clientDistAlt = join(__dirname, '..', 'client', 'dist')
+const staticPath = fs.existsSync(join(clientDistPath, 'index.html'))
+  ? clientDistPath
+  : fs.existsSync(join(clientDistAlt, 'index.html'))
+    ? clientDistAlt
+    : clientDistPath
+app.use(express.static(staticPath))
+app.use((req, res, next) => {
+  if (req.method !== 'GET' || req.path.startsWith('/api')) return next()
+  res.sendFile(join(staticPath, 'index.html'), (err) => { if (err) next() })
+})
 
 // ── Global error handler ──────────────────────────────────
 app.use((err, _req, res, _next) => {

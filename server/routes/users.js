@@ -14,7 +14,7 @@ const router = Router()
 function createToken(user) {
   return jwt.sign(
     { sub: user._id.toString(), role: user.role, name: user.name },
-    process.env.JWT_SECRET || 'development-secret-change-me',
+    process.env._SECRET || 'development-secret-change-me',
     { expiresIn: '7d' },
   )
 }

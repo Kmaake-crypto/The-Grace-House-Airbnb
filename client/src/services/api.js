@@ -6,6 +6,42 @@
 
 const BASE = import.meta.env.VITE_API_URL || '/api'
 
+const DEFAULT_IMAGE = 'https://images.unsplash.com/photo-1580060839134-75a5edca2e99?w=1200&q=80'
+
+/**
+ * Normalise a MongoDB listing document into the shape the UI uses,
+ * mirroring `normaliseListing` in services/taplineApi.js.
+ * Host-created listings get `isHostListing: true`.
+ */
+export function normaliseMongoListing(raw) {
+  const price = Number(raw.price) || 0
+  return {
+    id: raw._id || raw.id,
+    title: raw.title || 'Listing',
+    location: raw.location || 'South Africa',
+    description: raw.description || '',
+    type: raw.type || 'Entire home',
+    guests: Number(raw.guests) || 2,
+    beds: Number(raw.beds) || 1,
+    baths: Number(raw.baths) || 1,
+    price,
+    weeklyDiscount: Number(raw.weeklyDiscount) || 0,
+    cleaningFee: Number(raw.cleaningFee) || 0,
+    serviceFee: Number(raw.serviceFee) || 0,
+    occupancyTax: Number(raw.occupancyTax) || 0,
+    priceFormatted: raw.priceFormatted || `R ${price.toLocaleString('en-ZA')}`,
+    currency: raw.currency || 'ZAR',
+    rating: Number(raw.rating) || 0,
+    reviews: Number(raw.reviews) || 0,
+    host: raw.host || 'Host',
+    hostSince: raw.hostSince || 'New host',
+    image: raw.image || DEFAULT_IMAGE,
+    gallery: Array.isArray(raw.gallery) && raw.gallery.length ? raw.gallery : [raw.image || DEFAULT_IMAGE],
+    amenities: Array.isArray(raw.amenities) ? raw.amenities : [],
+    isHostListing: true,
+  }
+}
+
 async function request(path, options = {}) {
   const token = localStorage.getItem('airbnb-auth')
   let authHeader = {}

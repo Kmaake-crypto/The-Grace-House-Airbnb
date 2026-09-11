@@ -81,7 +81,7 @@ export default function ListingDetail() {
   }
 
   useEffect(() => {
-    if (!listing || String(listing.id).startsWith('sa-')) return
+    if (!listing || listing.isHostListing || String(listing.id).startsWith('sa-')) return
     let cancelled = false
     setPriceLoading(true)
     fetchPrice(listing.id, checkinDate, checkoutDate, listing.guests)

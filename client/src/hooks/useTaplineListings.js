@@ -1,6 +1,19 @@
 import { useState, useEffect, useCallback } from 'react'
 import { searchListings, getListingDetails, normaliseListing } from '../services/taplineApi.js'
 import { listings as fallbackListings } from '../data/listings.js'
+import { listingsApi, normaliseMongoListing } from '../services/api.js'
+
+const MONGO_ID_RE = /^[0-9a-f]{24}$/i
+
+function dedupe(listings) {
+  const seen = new Set()
+  return listings.filter((l) => {
+    const key = String(l.id)
+    if (seen.has(key)) return false
+    seen.add(key)
+    return true
+  })
+}
 
 /**
  * Custom hook that fetches South African listings from the Tapline API.
@@ -19,6 +32,17 @@ export function useTaplineListings(location = 'South Africa', options = {}) {
     setLoading(true)
     setError(null)
 
+    const merged = []
+    let taplineError = null
+
+    // Host-created listings from MongoDB come first so they are publicly discoverable.
+    await listingsApi.getAll()
+      .then((data) => {
+        const mongo = Array.isArray(data.listings) ? data.listings.map(normaliseMongoListing) : []
+        merged.push(...dedupe(mongo))
+      })
+      .catch(() => {})
+
     try {
       const data = await searchListings(location, options)
 
@@ -26,18 +50,18 @@ export function useTaplineListings(location = 'South Africa', options = {}) {
       const raw = data.listings ?? data.results ?? data.items ?? []
 
       if (Array.isArray(raw) && raw.length > 0) {
-        setListings([...raw.map(normaliseListing), ...fallbackListings])
-      } else {
-        // API succeeded but returned empty — keep fallback
-        setListings(fallbackListings)
+        merged.push(...dedupe(raw.map(normaliseListing)))
       }
     } catch (err) {
-      console.warn('Tapline API error, using fallback listings:', err.message)
-      setError(err.message)
-      setListings(fallbackListings)
-    } finally {
-      setLoading(false)
+      taplineError = err.message
     }
+
+    // Static curated SA listings fill the rest.
+    merged.push(...dedupe(fallbackListings))
+
+    setListings(dedupe(merged))
+    setError(taplineError)
+    setLoading(false)
   }, [location, options.checkin, options.checkout, options.guests]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -71,18 +95,42 @@ export function useTaplineListing(id) {
       setError(null)
 
       try {
+        // Host-created listings (Mongo ObjectIds) resolve from MongoDB first.
+        if (MONGO_ID_RE.test(String(id))) {
+          try {
+            const res = await listingsApi.getById(id)
+            if (!cancelled && res.listing) {
+              setListing(normaliseMongoListing(res.listing))
+              setLoading(false)
+              return
+            }
+          } catch {
+            // fall through to Tapline below
+          }
+        }
+
         const data = await getListingDetails(id)
         if (!cancelled) {
           setListing(normaliseListing(data))
+          setLoading(false)
         }
       } catch (err) {
+        // Tapline listing detail error — try MongoDB as a last resort.
         console.warn('Tapline listing detail error, using fallback:', err.message)
         if (!cancelled) {
+          try {
+            const res = await listingsApi.getById(id)
+            if (res.listing) {
+              setListing(normaliseMongoListing(res.listing))
+              setLoading(false)
+              return
+            }
+          } catch {
+            // keep whatever fallback was set in initial state
+          }
           setError(err.message)
-          // keep whatever fallback was set in initial state
+          setLoading(false)
         }
-      } finally {
-        if (!cancelled) setLoading(false)
       }
     }
 

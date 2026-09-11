@@ -257,6 +257,7 @@ export default function BookingModal({ listing, initialCheckin, initialCheckout,
                   setSaving(true)
                   try {
                     const res = await bookingsApi.create({
+                      listingId: listing.isHostListing ? String(listing.id) : undefined,
                       externalListingId: String(listing.id),
                       listingTitle:   listing.title,
                       listingLocation: listing.location,

@@ -1,10 +1,11 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Navbar from '../components/Navbar.jsx'
 import Footer from '../components/Footer.jsx'
 import SearchBar from '../components/SearchBar.jsx'
 import ListingCard from '../components/ListingCard.jsx'
 import { inspirationHotels, listings } from '../data/listings.js'
+import { listingsApi, normaliseMongoListing } from '../services/api.js'
 const heroImage = 'https://images.unsplash.com/photo-1697807646004-31ae73a1a625?q=80&w=870&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
 
 const SA_CITIES = [
@@ -19,8 +20,20 @@ const SA_CITIES = [
 export default function Home() {
   const navigate = useNavigate()
   const [getawayTab, setGetawayTab] = useState('coast')
+  const [hostListings, setHostListings] = useState([])
   const goTo = (query) => navigate(`/search?location=${encodeURIComponent(query)}`)
-  const featuredListings = listings.slice(0, 4)
+
+  useEffect(() => {
+    let cancelled = false
+    listingsApi.getAll()
+      .then((data) => {
+        if (!cancelled) setHostListings((Array.isArray(data.listings) ? data.listings : []).map(normaliseMongoListing))
+      })
+      .catch(() => {})
+    return () => { cancelled = true }
+  }, [])
+
+  const featuredListings = [...hostListings, ...listings].slice(0, 4)
   const getaways = {
     coast: ['Cape Town', 'Durban', 'Knysna', 'Port Elizabeth'],
     city: ['Johannesburg', 'Pretoria', 'Cape Town', 'Durban'],

@@ -47,27 +47,32 @@ app.get('/api/health', (_req, res) => {
   })
 })
 
-// ── Routes ────────────────────────────────────────────────
+// ── API Routes ────────────────────────────────────────────
 app.use('/api/listings', listingRoutes)
 app.use('/api/bookings', bookingRoutes)
 app.use('/api/users',    userRoutes)
 app.use('/api/tapline',  taplineRoutes)
 
-// ── Serve built React app (combined deployment) ───────────
-// The build outputs to root ./dist (Vite root = repo cwd).
-// Supports both root ./dist and ./client/dist for flexibility.
+// ── Serve built React app (only if dist exists) ───────────
 const clientDistPath = join(__dirname, '..', 'dist')
-const clientDistAlt = join(__dirname, '..', 'client', 'dist')
+const clientDistAlt  = join(__dirname, '..', 'client', 'dist')
 const staticPath = fs.existsSync(join(clientDistPath, 'index.html'))
   ? clientDistPath
   : fs.existsSync(join(clientDistAlt, 'index.html'))
     ? clientDistAlt
-    : clientDistPath
-app.use(express.static(staticPath))
-app.use((req, res, next) => {
-  if (req.method !== 'GET' || req.path.startsWith('/api')) return next()
-  res.sendFile(join(staticPath, 'index.html'), (err) => { if (err) next() })
-})
+    : null
+
+if (staticPath) {
+  app.use(express.static(staticPath))
+  app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/api')) return next()
+    res.sendFile(join(staticPath, 'index.html'), (err) => { if (err) next() })
+  })
+  console.log('📁  Serving static frontend from:', staticPath)
+} else {
+  console.log('ℹ️  No static frontend dist found — API-only mode')
+  app.get('/', (_req, res) => res.json({ name: 'Grace House API', status: 'running' }))
+}
 
 // ── Global error handler ──────────────────────────────────
 app.use((err, _req, res, _next) => {
